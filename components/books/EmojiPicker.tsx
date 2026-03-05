@@ -28,7 +28,7 @@ export function EmojiPicker({ presets, onSelect, open, onOpenChange, children }:
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>{children}</PopoverTrigger>
       <PopoverContent
-        className="w-64 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.18)] border border-gray-100 p-3"
+        className="w-64 rounded-2xl shadow-[var(--shadow-picker)] border border-gray-100 p-3"
         align="start"
         side="top"
       >
@@ -38,7 +38,7 @@ export function EmojiPicker({ presets, onSelect, open, onOpenChange, children }:
             <button
               key={emoji}
               onClick={() => pick(emoji)}
-              className="text-[1.6rem] leading-none hover:scale-125 active:scale-90 transition-transform duration-100 select-none p-1 rounded-xl hover:bg-gray-100"
+              className="text-[1.6rem] leading-none hover:scale-125 active:scale-90 transition-transform duration-100 select-none p-1 rounded-xl hover:bg-gray-100 cursor-pointer"
               aria-label={`React ${emoji}`}
             >
               {emoji}
@@ -54,7 +54,7 @@ export function EmojiPicker({ presets, onSelect, open, onOpenChange, children }:
             <button
               key={emoji}
               onClick={() => pick(emoji)}
-              className="text-[1.25rem] leading-none hover:scale-110 active:scale-90 transition-transform duration-100 select-none p-1 rounded-lg hover:bg-gray-100 flex items-center justify-center"
+              className="text-[1.25rem] leading-none hover:scale-110 active:scale-90 transition-transform duration-100 select-none p-1 rounded-lg hover:bg-gray-100 flex items-center justify-center cursor-pointer"
               aria-label={`React ${emoji}`}
             >
               {emoji}

@@ -1,11 +1,12 @@
-import { clubConfig } from '@/lib/config';
+import { getClubConfig } from '@/lib/actions/settings';
 import { JoinForm } from '@/components/auth/JoinForm';
 import { AuthShell } from '@/components/auth/AuthShell';
 
-export default function JoinPage() {
+export default async function JoinPage() {
+  const config = await getClubConfig();
   return (
     <AuthShell>
-      <JoinForm clubName={clubConfig.name} />
+      <JoinForm clubName={config.name} />
     </AuthShell>
   );
 }

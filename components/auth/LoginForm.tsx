@@ -1,35 +1,30 @@
 'use client';
 
-import { useActionState, useState } from 'react';
-import { joinClub, type JoinState } from '@/lib/actions/join';
+import { useActionState } from 'react';
+import { loginUser, type LoginState } from '@/lib/actions/login';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PinPad } from '@/components/auth/PinPad';
 
-interface JoinFormProps {
+interface LoginFormProps {
   clubName: string;
+  initialName?: string;
 }
 
-export function JoinForm({ clubName }: JoinFormProps) {
-  const [state, action, pending] = useActionState(joinClub, null);
-  const [pinStep, setPinStep] = useState<'pin' | 'confirm'>('pin');
-  const [pinValue, setPinValue] = useState('');
+export function LoginForm({ clubName, initialName }: LoginFormProps) {
+  const [state, action, pending] = useActionState(
+    loginUser,
+    initialName ? { needsPin: true, name: initialName } : null,
+  );
 
-  const isNewUser = state !== null && 'newUser' in state;
-  const isNameTaken = state !== null && 'nameTaken' in state;
-  const lockedName = isNewUser ? (state as { name: string }).name : '';
+  const isStep2 = state !== null && 'needsPin' in state;
+  const lockedName = isStep2 ? (state as { name: string }).name : '';
 
-  const heading = isNewUser ? 'Create your PIN' : 'Who are you?';
-  const subtext = isNewUser
-    ? pinStep === 'pin' ? 'Choose a 4–6 digit PIN' : 'Confirm your PIN'
-    : 'Enter your name to get started';
-
-  const buttonLabel = pending
-    ? 'Just a moment…'
-    : isNewUser
-    ? 'Create account'
-    : 'Continue';
+  const heading = isStep2 ? 'Welcome back' : 'Sign in';
+  const subtext = isStep2
+    ? `Good to see you, ${lockedName}`
+    : 'Enter your name to continue';
 
   return (
     <div className="w-full max-w-xs animate-page-in">
@@ -56,7 +51,7 @@ export function JoinForm({ clubName }: JoinFormProps) {
         <div className="bg-white rounded-3xl shadow-[var(--shadow-card)] p-7 space-y-4 stagger">
 
           {/* Step 1: name / Step 2: name pill */}
-          {isNewUser ? (
+          {isStep2 ? (
             <>
               <input type="hidden" name="name" value={lockedName} />
               <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-[oklch(0.97_0.008_250)]">
@@ -68,7 +63,7 @@ export function JoinForm({ clubName }: JoinFormProps) {
                 </div>
                 <div>
                   <p className="text-[11px] text-muted-foreground leading-none mb-0.5" style={{ fontFamily: 'var(--font-nunito)' }}>
-                    Registering as
+                    Signing in as
                   </p>
                   <p className="text-sm font-semibold text-foreground leading-none" style={{ fontFamily: 'var(--font-fredoka)' }}>
                     {lockedName}
@@ -102,37 +97,12 @@ export function JoinForm({ clubName }: JoinFormProps) {
             </div>
           )}
 
-          {/* New user: sequential PIN steps */}
-          {isNewUser && pinStep === 'pin' && (
-            <PinPad
-              name="pin"
-              label="New PIN"
-              autoFocus
-              onComplete={(val) => { setPinValue(val); setPinStep('confirm'); }}
-            />
-          )}
-          {isNewUser && pinStep === 'confirm' && (
-            <>
-              <input type="hidden" name="pin" value={pinValue} />
-              <PinPad name="confirmPin" label="Confirm PIN" autoFocus />
-            </>
+          {/* Step 2: PIN */}
+          {isStep2 && (
+            <PinPad name="pin" label="PIN" autoFocus />
           )}
 
-          {/* Name taken error */}
-          {isNameTaken && (
-            <div className="rounded-2xl bg-amber-50 border border-amber-200 px-4 py-3">
-              <p className="text-sm text-amber-700 text-center font-semibold" style={{ fontFamily: 'var(--font-nunito)' }}>
-                That name is already taken.
-              </p>
-              <p className="text-xs text-amber-600 text-center mt-1" style={{ fontFamily: 'var(--font-nunito)' }}>
-                <a href={`/login?name=${encodeURIComponent((state as { name: string }).name)}`} className="underline underline-offset-2 hover:text-amber-800 transition-colors">
-                  Log in instead →
-                </a>
-              </p>
-            </div>
-          )}
-
-          {/* Generic error */}
+          {/* Error */}
           {state && 'error' in state && (
             <div className="rounded-2xl bg-destructive/8 border border-destructive/15 px-4 py-3">
               <p className="text-sm text-destructive text-center font-semibold" style={{ fontFamily: 'var(--font-nunito)' }}>
@@ -148,33 +118,19 @@ export function JoinForm({ clubName }: JoinFormProps) {
             </div>
           )}
 
-          {isNewUser && pinStep === 'confirm' && (
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => setPinStep('pin')}
-              className="w-full h-10 rounded-2xl text-sm font-semibold text-muted-foreground"
-              style={{ fontFamily: 'var(--font-nunito)' }}
-            >
-              ← Back
-            </Button>
-          )}
+          <Button
+            type="submit"
+            disabled={pending}
+            className="w-full h-12 rounded-2xl font-semibold text-sm text-white border-0 mt-2
+                       bg-[var(--color-primary)] hover:opacity-90 active:opacity-80
+                       disabled:opacity-50 disabled:cursor-not-allowed
+                       transition-opacity shadow-sm"
+            style={{ fontFamily: 'var(--font-nunito)' }}
+          >
+            {pending ? 'Just a moment…' : isStep2 ? 'Sign in' : 'Continue'}
+          </Button>
 
-          {!(isNewUser && pinStep === 'pin') && !isNameTaken && (
-            <Button
-              type="submit"
-              disabled={pending}
-              className="w-full h-12 rounded-2xl font-semibold text-sm text-white border-0 mt-2
-                         bg-[var(--color-primary)] hover:opacity-90 active:opacity-80
-                         disabled:opacity-50 disabled:cursor-not-allowed
-                         transition-opacity shadow-sm"
-              style={{ fontFamily: 'var(--font-nunito)' }}
-            >
-              {buttonLabel}
-            </Button>
-          )}
-
-          {isNewUser && (
+          {isStep2 && (
             <button
               type="button"
               onClick={() => window.location.reload()}
@@ -185,11 +141,11 @@ export function JoinForm({ clubName }: JoinFormProps) {
             </button>
           )}
 
-          {!isNewUser && !isNameTaken && (
+          {!isStep2 && (
             <p className="text-center text-xs text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>
-              Already have an account?{' '}
-              <a href="/login" className="underline underline-offset-2 hover:text-foreground transition-colors">
-                Log in →
+              New here?{' '}
+              <a href="/join" className="underline underline-offset-2 hover:text-foreground transition-colors">
+                Register →
               </a>
             </p>
           )}

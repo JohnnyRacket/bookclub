@@ -17,7 +17,7 @@ export function ActionMenu({ atSubmissionCap }: { atSubmissionCap: boolean }) {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
-          className="px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 active:scale-95"
+          className="px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 active:scale-95 cursor-pointer"
           style={{ background: 'var(--color-primary)', fontFamily: 'var(--font-nunito)' }}
         >
           + Do Something
@@ -31,14 +31,14 @@ export function ActionMenu({ atSubmissionCap }: { atSubmissionCap: boolean }) {
         <button
           onClick={() => !atSubmissionCap && go('/submit')}
           disabled={atSubmissionCap}
-          className="w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-white transition-colors hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-white transition-colors hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           style={{ fontFamily: 'var(--font-nunito)' }}
         >
           {atSubmissionCap ? 'Book(s) Submitted' : 'Submit Book'}
         </button>
         <button
           onClick={() => go('/meeting')}
-          className="w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-white transition-colors hover:bg-white/20"
+          className="w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-white transition-colors hover:bg-white/20 cursor-pointer"
           style={{ fontFamily: 'var(--font-nunito)' }}
         >
           Select Next Book
@@ -46,7 +46,7 @@ export function ActionMenu({ atSubmissionCap }: { atSubmissionCap: boolean }) {
         <div className="my-1 border-t border-white/30" />
         <button
           onClick={() => go('/admin')}
-          className="w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-white/70 transition-colors hover:bg-white/20 hover:text-white"
+          className="w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-white/70 transition-colors hover:bg-white/20 hover:text-white cursor-pointer"
           style={{ fontFamily: 'var(--font-nunito)' }}
         >
           Elevate to Admin

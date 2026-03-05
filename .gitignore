@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# downloaded/uploaded book cover images
+/public/covers/*
+!/public/covers/.gitkeep

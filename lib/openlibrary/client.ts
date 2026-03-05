@@ -1,4 +1,5 @@
 import { db } from '@/lib/db/client';
+import { isCleanTag } from '@/lib/utils/tags';
 
 const OL_BASE = 'https://openlibrary.org';
 const COVER_BASE = 'https://covers.openlibrary.org/b/id';
@@ -69,7 +70,7 @@ export async function searchBooks(query: string): Promise<OLSearchResult[]> {
     coverUrl: doc.cover_i ? `${COVER_BASE}/${doc.cover_i as number}-M.jpg` : null,
     year: (doc.first_publish_year as number) ?? null,
     pages: (doc.number_of_pages_median as number) ?? null,
-    genres: Array.isArray(doc.subject) ? (doc.subject as string[]).slice(0, 5) : [],
+    genres: Array.isArray(doc.subject) ? (doc.subject as string[]).filter(isCleanTag).slice(0, 5) : [],
   }));
 
   await setCache(cacheKey, results);

@@ -6,9 +6,11 @@ import type { BookWithStats } from '@/lib/actions/books';
 
 interface PastBookCardProps {
   book: BookWithStats;
+  thumbsUpEmoji: string;
+  thumbsDownEmoji: string;
 }
 
-export function PastBookCard({ book }: PastBookCardProps) {
+export function PastBookCard({ book, thumbsUpEmoji, thumbsDownEmoji }: PastBookCardProps) {
   const [open, setOpen] = useState(false);
 
   const totalThumbs = book.up_count + book.down_count;
@@ -18,7 +20,7 @@ export function PastBookCard({ book }: PastBookCardProps) {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex-shrink-0 w-36 bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] overflow-hidden text-left hover:shadow-[0_8px_32px_rgba(0,0,0,0.13)] hover:-translate-y-0.5 transition-all"
+        className="flex-shrink-0 w-36 bg-white rounded-2xl shadow-[var(--shadow-card-sm)] overflow-hidden text-left hover:shadow-[var(--shadow-float)] hover:-translate-y-0.5 transition-all cursor-pointer"
       >
         {/* Cover */}
         <div className="relative h-44 bg-gray-100">
@@ -52,9 +54,9 @@ export function PastBookCard({ book }: PastBookCardProps) {
           <div className="flex items-center gap-1.5">
             {totalThumbs > 0 && (
               <span className="text-[11px] text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>
-                {book.up_count > 0 && `👍${book.up_count}`}
+                {book.up_count > 0 && `${thumbsUpEmoji}${book.up_count}`}
                 {book.up_count > 0 && book.down_count > 0 && ' '}
-                {book.down_count > 0 && `👎${book.down_count}`}
+                {book.down_count > 0 && `${thumbsDownEmoji}${book.down_count}`}
               </span>
             )}
             {topReacts.length > 0 && (
@@ -66,7 +68,13 @@ export function PastBookCard({ book }: PastBookCardProps) {
         </div>
       </button>
 
-      <PastBookModal book={book} open={open} onOpenChange={setOpen} />
+      <PastBookModal
+        book={book}
+        open={open}
+        onOpenChange={setOpen}
+        thumbsUpEmoji={thumbsUpEmoji}
+        thumbsDownEmoji={thumbsDownEmoji}
+      />
     </>
   );
 }

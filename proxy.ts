@@ -40,8 +40,8 @@ export async function proxy(req: NextRequest) {
     path: '/',
   });
 
-  // /join only needs a valid gate
-  if (pathname === '/join') {
+  // /join and /login only need a valid gate
+  if (pathname === '/join' || pathname === '/login') {
     return res;
   }
 

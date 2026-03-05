@@ -45,7 +45,7 @@ export function BookReacts({ bookId, reacts, locked, reactPresets }: BookReactsP
             <button
               onClick={() => handleReact(emoji)}
               disabled={isPending || locked}
-              className={`leading-none select-none transition-all duration-150 disabled:cursor-default
+              className={`leading-none select-none transition-all duration-150 cursor-pointer disabled:cursor-default
                 ${locked
                   ? 'text-[1.75rem]'
                   : 'text-[1.75rem] hover:scale-125 hover:-translate-y-0.5 active:scale-95'
@@ -93,7 +93,7 @@ export function BookReacts({ bookId, reacts, locked, reactPresets }: BookReactsP
           >
             <button
               disabled={isPending}
-              className="w-[2.1rem] h-[2.1rem] rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-all duration-150 hover:scale-110 active:scale-90 disabled:opacity-50"
+              className="w-[2.1rem] h-[2.1rem] rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-all duration-150 hover:scale-110 active:scale-90 disabled:opacity-50 cursor-pointer disabled:cursor-default"
               aria-label="Add reaction"
               title="Add reaction"
             >

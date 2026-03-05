@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Fredoka, Nunito } from 'next/font/google';
-import { clubConfig } from '@/lib/config';
+import { getClubConfig } from '@/lib/actions/settings';
 import './globals.css';
 
 const fredoka = Fredoka({
@@ -15,19 +15,30 @@ const nunito = Nunito({
   weight: ['400', '500', '600', '700'],
 });
 
-export const metadata: Metadata = {
-  title: clubConfig.name,
-  description: `Welcome to ${clubConfig.name}`,
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const config = await getClubConfig();
+  return {
+    title: config.name,
+    description: `Welcome to ${config.name}`,
+  };
+}
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const config = await getClubConfig();
   return (
     <html lang="en">
       <body
         className={`${fredoka.variable} ${nunito.variable} antialiased`}
-        style={{ '--color-primary': clubConfig.primaryColor, '--primary': clubConfig.primaryColor } as React.CSSProperties}
+        style={{
+          '--color-primary': config.primaryColor,
+          '--primary': config.primaryColor,
+          '--shadow-card': `0 14px 48px oklch(from ${config.primaryColor} l c h / 0.18)`,
+          '--shadow-card-sm': `0 6px 24px oklch(from ${config.primaryColor} l c h / 0.14)`,
+          '--shadow-float': `0 20px 56px oklch(from ${config.primaryColor} l c h / 0.24)`,
+          '--shadow-picker': `0 12px 36px oklch(from ${config.primaryColor} l c h / 0.24)`,
+        } as React.CSSProperties}
       >
         {children}
       </body>

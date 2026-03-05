@@ -1,11 +1,12 @@
-import { clubConfig } from '@/lib/config';
+import { getClubConfig } from '@/lib/actions/settings';
 import { EnterForm } from '@/components/auth/EnterForm';
 import { AuthShell } from '@/components/auth/AuthShell';
 
-export default function EnterPage() {
+export default async function EnterPage() {
+  const config = await getClubConfig();
   return (
     <AuthShell>
-      <EnterForm clubName={clubConfig.name} logoUrl={clubConfig.logoUrl} />
+      <EnterForm clubName={config.name} logoUrl={config.logoUrl} />
     </AuthShell>
   );
 }

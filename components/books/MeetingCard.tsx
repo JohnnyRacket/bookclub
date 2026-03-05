@@ -14,7 +14,7 @@ export function MeetingCard({ settings }: { settings: MeetingSettings }) {
   const formatted = settings.nextMeetingAt ? formatMeetingDate(settings.nextMeetingAt) : null;
 
   return (
-    <div className="bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.07)] p-5">
+    <div className="bg-white rounded-2xl shadow-[var(--shadow-card-sm)] p-5">
       <div className="flex items-start justify-between mb-3">
         <p
           className="text-xs font-bold uppercase tracking-widest"

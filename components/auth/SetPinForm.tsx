@@ -31,7 +31,7 @@ export function SetPinForm({ name }: { name: string }) {
       </div>
 
       <form action={action}>
-        <div className="bg-white rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.10)] p-7 space-y-4 stagger">
+        <div className="bg-white rounded-3xl shadow-[var(--shadow-card)] p-7 space-y-4 stagger">
           {step === 1 ? (
             <PinPad
               name="pin"

@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth/session';
-import { clubConfig } from '@/lib/config';
+import { getClubConfig } from '@/lib/actions/settings';
 import { getCurrentBook, getPastBooks } from '@/lib/actions/books';
 import { getMySubmissions } from '@/lib/actions/submit';
 import { getMeetingSettings } from '@/lib/actions/settings';
@@ -14,11 +14,12 @@ export default async function HomePage() {
   const session = await getSession();
   if (!session) redirect('/join');
 
-  const [currentBook, pastBooks, meetingSettings, mySubmissions] = await Promise.all([
+  const [currentBook, pastBooks, meetingSettings, mySubmissions, clubConfig] = await Promise.all([
     getCurrentBook(),
     getPastBooks(),
     getMeetingSettings(),
     getMySubmissions(),
+    getClubConfig(),
   ]);
 
   const atSubmissionCap = mySubmissions.length >= clubConfig.maxSubmissionsPerMember;
@@ -49,7 +50,12 @@ export default async function HomePage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8 animate-page-in">
           {/* Current book — 2/3 width on desktop */}
           <div className="lg:col-span-2">
-            <CurrentBookCard book={currentBook} reactPresets={clubConfig.reactPresets} />
+            <CurrentBookCard
+              book={currentBook}
+              reactPresets={clubConfig.reactPresets}
+              thumbsUpEmoji={clubConfig.thumbsUpEmoji}
+              thumbsDownEmoji={clubConfig.thumbsDownEmoji}
+            />
           </div>
 
           {/* Sidebar — meeting info */}
@@ -62,21 +68,63 @@ export default async function HomePage() {
         </div>
 
         {/* Past books */}
-        {pastBooks.length > 0 && (
-          <div className="animate-page-in" style={{ animationDelay: '0.15s' }}>
-            <h2
-              className="text-lg font-semibold text-foreground mb-4"
-              style={{ fontFamily: 'var(--font-fredoka)' }}
-            >
-              Past Reads
-            </h2>
-            <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4">
-              {pastBooks.map(book => (
-                <PastBookCard key={book.id} book={book} />
-              ))}
-            </div>
+        <div className="animate-page-in" style={{ animationDelay: '0.15s' }}>
+          <h2
+            className="text-lg font-semibold text-foreground mb-2"
+            style={{ fontFamily: 'var(--font-fredoka)' }}
+          >
+            Past Reads
+          </h2>
+          <div className="w-16 h-0.5 rounded-full mb-4" style={{ background: 'color-mix(in oklch, var(--color-primary) 45%, transparent)' }} />
+          <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4">
+            {pastBooks.length > 0 ? (
+              pastBooks.map(book => (
+                <PastBookCard
+                  key={book.id}
+                  book={book}
+                  thumbsUpEmoji={clubConfig.thumbsUpEmoji}
+                  thumbsDownEmoji={clubConfig.thumbsDownEmoji}
+                />
+              ))
+            ) : (
+              <div
+                className="flex-shrink-0 w-36 rounded-2xl overflow-hidden border-2 border-dashed flex flex-col items-center justify-center text-center p-4 h-[248px]"
+                style={{
+                  borderColor: 'color-mix(in oklch, var(--color-primary) 35%, transparent)',
+                  background: 'color-mix(in oklch, var(--color-primary) 6%, white)',
+                }}
+              >
+                <svg width="36" height="44" viewBox="0 0 56 68" fill="none" xmlns="http://www.w3.org/2000/svg" className="mb-2 opacity-40">
+                  {/* Main cover outline */}
+                  <rect x="4.75" y="2.75" width="46.5" height="60.5" rx="2.5"
+                    style={{ stroke: 'var(--color-primary)', strokeWidth: '1.5', strokeDasharray: '4 3' }}
+                  />
+                  {/* Spine divider */}
+                  <line x1="12" y1="2.75" x2="12" y2="63.25"
+                    style={{ stroke: 'var(--color-primary)', strokeWidth: '1.5', strokeDasharray: '4 3' }}
+                  />
+                  {/* Title line placeholders */}
+                  <line x1="20" y1="22" x2="43" y2="22"
+                    style={{ stroke: 'var(--color-primary)', strokeWidth: '1.5', strokeDasharray: '3 2.5', strokeLinecap: 'round' }}
+                  />
+                  <line x1="22" y1="28" x2="40" y2="28"
+                    style={{ stroke: 'var(--color-primary)', strokeWidth: '1.5', strokeDasharray: '3 2.5', strokeLinecap: 'round' }}
+                  />
+                  {/* Author line placeholder */}
+                  <line x1="24" y1="44" x2="38" y2="44"
+                    style={{ stroke: 'var(--color-primary)', strokeWidth: '1.5', strokeDasharray: '3 2.5', strokeLinecap: 'round' }}
+                  />
+                </svg>
+                <p
+                  className="text-xs font-semibold leading-snug"
+                  style={{ color: 'color-mix(in oklch, var(--color-primary) 70%, black)', fontFamily: 'var(--font-fredoka)' }}
+                >
+                  Past reads will appear here
+                </p>
+              </div>
+            )}
           </div>
-        )}
+        </div>
 
         <p className="text-center text-xs text-muted-foreground mt-12" style={{ fontFamily: 'var(--font-nunito)' }}>
           🌿 {clubConfig.name}

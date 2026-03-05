@@ -9,9 +9,11 @@ interface PastBookModalProps {
   book: BookWithStats;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  thumbsUpEmoji: string;
+  thumbsDownEmoji: string;
 }
 
-export function PastBookModal({ book, open, onOpenChange }: PastBookModalProps) {
+export function PastBookModal({ book, open, onOpenChange, thumbsUpEmoji, thumbsDownEmoji }: PastBookModalProps) {
   const genres: string[] = book.genres ? JSON.parse(book.genres) : [];
 
   return (
@@ -41,6 +43,8 @@ export function PastBookModal({ book, open, onOpenChange }: PastBookModalProps) 
                 downCount={book.down_count}
                 userThumb={book.user_thumb}
                 locked={true}
+                upEmoji={thumbsUpEmoji}
+                downEmoji={thumbsDownEmoji}
               />
             </div>
             <div className="min-w-0">
@@ -73,6 +77,11 @@ export function PastBookModal({ book, open, onOpenChange }: PastBookModalProps) 
                     </span>
                   ))}
                 </div>
+              )}
+              {book.submitter_name && (
+                <p className="text-xs text-muted-foreground mt-1.5" style={{ fontFamily: 'var(--font-nunito)' }}>
+                  Suggested by <span className="font-semibold">{book.submitter_name}</span>
+                </p>
               )}
             </div>
           </div>

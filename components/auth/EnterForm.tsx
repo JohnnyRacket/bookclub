@@ -49,7 +49,7 @@ export function EnterForm({ clubName, logoUrl }: EnterFormProps) {
 
       {/* Floating card */}
       <form action={action}>
-        <div className="bg-white rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.10)] p-7 space-y-4 stagger">
+        <div className="bg-white rounded-3xl shadow-[var(--shadow-card)] p-7 space-y-4 stagger">
           <div className="space-y-1.5">
             <Label
               htmlFor="password"

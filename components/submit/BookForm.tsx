@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { submitBook } from '@/lib/actions/submit';
 import type { OLSearchResult } from '@/lib/openlibrary/client';
 
@@ -12,6 +12,8 @@ interface BookFormProps {
 export function BookForm({ prefill, onSuccess }: BookFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const previewUrlRef = useRef<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -35,15 +37,35 @@ export function BookForm({ prefill, onSuccess }: BookFormProps) {
       <input type="hidden" name="ol_key" defaultValue={prefill?.olKey ?? ''} />
       <input type="hidden" name="cover_url" defaultValue={prefill?.coverUrl ?? ''} />
 
-      {prefill?.coverUrl && (
+      {(coverPreview ?? prefill?.coverUrl) && (
         <div className="flex justify-center">
           <img
-            src={prefill.coverUrl}
-            alt={prefill.title}
+            src={(coverPreview ?? prefill?.coverUrl)!}
+            alt={prefill?.title ?? 'Cover preview'}
             className="w-24 h-34 object-cover rounded-xl shadow-md"
           />
         </div>
       )}
+
+      <div>
+        <label className="block text-sm font-semibold mb-1.5" style={{ fontFamily: 'var(--font-nunito)' }}>
+          Cover Image
+          <span className="ml-1 text-xs font-normal text-muted-foreground">(optional upload)</span>
+        </label>
+        <input
+          type="file"
+          name="cover_file"
+          accept="image/*"
+          onChange={e => {
+            const file = e.target.files?.[0]
+            if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current)
+            const url = file ? URL.createObjectURL(file) : null
+            previewUrlRef.current = url
+            setCoverPreview(url)
+          }}
+          className="w-full text-sm text-muted-foreground file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
+        />
+      </div>
 
       <div>
         <label className="block text-sm font-semibold mb-1.5" style={{ fontFamily: 'var(--font-nunito)' }}>

@@ -16,7 +16,7 @@ export default function SubmitPage() {
         className="min-h-screen flex items-center justify-center px-4"
         style={{ background: 'color-mix(in oklch, var(--color-primary) 8%, white)' }}
       >
-        <div className="bg-white rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.10)] p-10 max-w-sm w-full text-center animate-page-in">
+        <div className="bg-white rounded-3xl shadow-[var(--shadow-card)] p-10 max-w-sm w-full text-center animate-page-in">
           <div className="text-5xl mb-4">🎉</div>
           <h2
             className="text-2xl font-semibold text-foreground mb-2"
@@ -74,7 +74,7 @@ export default function SubmitPage() {
           </p>
         </div>
 
-        <div className="bg-white rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.08)] p-6 space-y-6 animate-page-in">
+        <div className="bg-white rounded-3xl shadow-[var(--shadow-card)] p-6 space-y-6 animate-page-in">
           {/* Search */}
           <BookSearch onSelect={(r) => setSelected(r)} selected={selected} onClear={() => setSelected(null)} />
 

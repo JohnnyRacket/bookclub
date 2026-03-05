@@ -7,14 +7,37 @@ import type { BookWithStats } from '@/lib/actions/books';
 interface CurrentBookCardProps {
   book: BookWithStats | null;
   reactPresets: string[];
+  thumbsUpEmoji: string;
+  thumbsDownEmoji: string;
 }
 
-export function CurrentBookCard({ book, reactPresets }: CurrentBookCardProps) {
+export function CurrentBookCard({ book, reactPresets, thumbsUpEmoji, thumbsDownEmoji }: CurrentBookCardProps) {
 
   if (!book) {
     return (
-      <div className="bg-white rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.08)] p-10 text-center h-full flex flex-col items-center justify-center">
-        <div className="text-5xl mb-4">📚</div>
+      <div className="bg-white rounded-3xl shadow-[var(--shadow-card)] p-10 text-center h-full flex flex-col items-center justify-center">
+        <svg width="56" height="68" viewBox="0 0 56 68" fill="none" xmlns="http://www.w3.org/2000/svg" className="mb-4 opacity-40">
+          {/* Dashed book outline — conveys an empty slot */}
+          {/* Main cover outline */}
+          <rect x="4.75" y="2.75" width="46.5" height="60.5" rx="2.5"
+            style={{ stroke: 'var(--color-primary)', strokeWidth: '1.5', strokeDasharray: '4 3' }}
+          />
+          {/* Spine divider */}
+          <line x1="12" y1="2.75" x2="12" y2="63.25"
+            style={{ stroke: 'var(--color-primary)', strokeWidth: '1.5', strokeDasharray: '4 3' }}
+          />
+          {/* Title line placeholders */}
+          <line x1="20" y1="22" x2="43" y2="22"
+            style={{ stroke: 'var(--color-primary)', strokeWidth: '1.5', strokeDasharray: '3 2.5', strokeLinecap: 'round' }}
+          />
+          <line x1="22" y1="28" x2="40" y2="28"
+            style={{ stroke: 'var(--color-primary)', strokeWidth: '1.5', strokeDasharray: '3 2.5', strokeLinecap: 'round' }}
+          />
+          {/* Author line placeholder */}
+          <line x1="24" y1="44" x2="38" y2="44"
+            style={{ stroke: 'var(--color-primary)', strokeWidth: '1.5', strokeDasharray: '3 2.5', strokeLinecap: 'round' }}
+          />
+        </svg>
         <h2
           className="text-2xl font-semibold text-foreground mb-2"
           style={{ fontFamily: 'var(--font-fredoka)' }}
@@ -22,7 +45,7 @@ export function CurrentBookCard({ book, reactPresets }: CurrentBookCardProps) {
           No current book
         </h2>
         <p className="text-sm text-muted-foreground max-w-xs" style={{ fontFamily: 'var(--font-nunito)' }}>
-          The admin hasn&apos;t selected a book yet. Submit a suggestion or check back soon!
+          The group hasn&apos;t selected a book yet. Submit a suggestion or check back soon!
         </p>
       </div>
     );
@@ -33,7 +56,7 @@ export function CurrentBookCard({ book, reactPresets }: CurrentBookCardProps) {
   return (
     // Outer wrapper: relative so the picker can position absolutely off the card bottom
     <div className="relative">
-      <div className="bg-white rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.08)] overflow-hidden">
+      <div className="bg-white rounded-3xl shadow-[var(--shadow-card)] overflow-hidden">
         <div className="flex gap-5 p-6 pb-4">
           {/* Cover + thumbs stacked */}
           <div className="flex flex-col items-center gap-3 flex-shrink-0">
@@ -57,6 +80,8 @@ export function CurrentBookCard({ book, reactPresets }: CurrentBookCardProps) {
               downCount={book.down_count}
               userThumb={book.user_thumb}
               locked={false}
+              upEmoji={thumbsUpEmoji}
+              downEmoji={thumbsDownEmoji}
             />
           </div>
 

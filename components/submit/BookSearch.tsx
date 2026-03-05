@@ -36,7 +36,7 @@ export function BookSearch({ onSelect, selected, onClear }: BookSearchProps) {
       } finally {
         setLoading(false);
       }
-    }, 400);
+    }, 700);
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };

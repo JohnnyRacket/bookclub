@@ -5,16 +5,11 @@ import { redirect } from 'next/navigation';
 import bcrypt from 'bcryptjs';
 import { db } from '@/lib/db/client';
 import { createSession, sessionCookieOptions } from '@/lib/auth/session';
-import {
-  checkRateLimit,
-  recordFailedAttempt,
-  clearAttempts,
-} from '@/lib/auth/rate-limit';
 
 export type JoinState =
   | null
   | { error: string; attemptsLeft?: number }
-  | { needsPin: true; name: string }   // existing user, show PIN prompt
+  | { nameTaken: true; name: string }  // existing user, show login link
   | { newUser: true; name: string };   // new user, show PIN + confirm
 
 export async function joinClub(
@@ -33,39 +28,9 @@ export async function joinClub(
     .where('name', '=', name)
     .executeTakeFirst();
 
-  // ── Returning user: name is taken, PIN required ──────────────────────────
+  // ── Name taken: redirect to login ─────────────────────────────────────────
   if (existingUser) {
-    if (!pin) {
-      return { needsPin: true, name };
-    }
-
-    const { allowed, attemptsLeft, lockedUntilMs } = checkRateLimit(name);
-    if (!allowed) {
-      const mins = lockedUntilMs
-        ? Math.ceil((lockedUntilMs - Date.now()) / 60000)
-        : 15;
-      return { error: `Too many attempts. Try again in ${mins} minute${mins !== 1 ? 's' : ''}.` };
-    }
-
-    const valid = await bcrypt.compare(pin, existingUser.pin_hash);
-    if (!valid) {
-      const left = recordFailedAttempt(name);
-      return {
-        error: left === 0
-          ? 'Too many failed attempts. Locked for 15 minutes.'
-          : 'Wrong PIN',
-        attemptsLeft: left,
-      };
-    }
-
-    clearAttempts(name);
-
-    const pinReset = existingUser.pin_reset === 1;
-    const signed = await createSession(existingUser.id, pinReset);
-    const cookieStore = await cookies();
-    cookieStore.set({ value: signed, ...sessionCookieOptions() });
-
-    redirect(pinReset ? '/set-pin' : '/');
+    return { nameTaken: true, name };
   }
 
   // ── New user: claim name + set PIN ───────────────────────────────────────

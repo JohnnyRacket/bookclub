@@ -37,14 +37,7 @@ export function CountdownCard({ nextMeetingAt }: CountdownCardProps) {
   const isToday = countdown.label === 'Today!';
 
   return (
-    <div
-      className="rounded-2xl p-5 text-center"
-      style={{
-        background: isToday
-          ? 'color-mix(in oklch, var(--color-primary) 15%, white)'
-          : 'color-mix(in oklch, var(--color-primary) 8%, white)',
-      }}
-    >
+    <div className="rounded-2xl p-5 text-center">
       <p
         className="text-xs font-bold uppercase tracking-widest mb-1"
         style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-nunito)' }}

@@ -3,6 +3,7 @@
 import { db } from '@/lib/db/client';
 import { requireAdmin } from '@/lib/actions/admin';
 import { revalidatePath } from 'next/cache';
+import { downloadCover, saveUploadedCover } from '@/lib/images/covers';
 
 export type SubmittedBookRow = {
   id: number;
@@ -52,6 +53,66 @@ export async function setCurrentBook(bookId: number): Promise<void> {
 
   revalidatePath('/');
   revalidatePath('/admin');
+}
+
+export type CurrentBookAdmin = {
+  id: number;
+  title: string;
+  author: string;
+  cover_url: string | null;
+  pages: number | null;
+  year: number | null;
+  genres: string | null;
+};
+
+export async function getCurrentBookAdmin(): Promise<CurrentBookAdmin | null> {
+  await requireAdmin();
+  return (
+    (await db
+      .selectFrom('books')
+      .select(['id', 'title', 'author', 'cover_url', 'pages', 'year', 'genres'])
+      .where('status', '=', 'current')
+      .executeTakeFirst()) ?? null
+  );
+}
+
+export async function updateBook(bookId: number, formData: FormData): Promise<{ error?: string }> {
+  await requireAdmin();
+
+  const title = (formData.get('title') as string)?.trim();
+  const author = (formData.get('author') as string)?.trim();
+  if (!title || !author) return { error: 'Title and author are required' };
+
+  const pagesVal = formData.get('pages') as string;
+  const pages = pagesVal ? Number(pagesVal) : null;
+  const yearVal = formData.get('year') as string;
+  const year = yearVal ? Number(yearVal) : null;
+  const genresRaw = (formData.get('genres') as string)?.trim();
+  const genres = genresRaw
+    ? JSON.stringify(genresRaw.split(',').map((g) => g.trim()).filter(Boolean))
+    : null;
+
+  let cover_url = (formData.get('existing_cover_url') as string) || null;
+  const uploadedFile = formData.get('cover_file') as File | null;
+  const olCoverUrl = (formData.get('cover_url') as string)?.trim() || null;
+
+  if (uploadedFile && uploadedFile.size > 0) {
+    const saved = await saveUploadedCover(uploadedFile);
+    if (saved) cover_url = saved;
+  } else if (olCoverUrl) {
+    const downloaded = await downloadCover(olCoverUrl);
+    if (downloaded) cover_url = downloaded;
+  }
+
+  await db
+    .updateTable('books')
+    .set({ title, author, cover_url, pages, year, genres })
+    .where('id', '=', bookId)
+    .execute();
+
+  revalidatePath('/');
+  revalidatePath('/admin');
+  return {};
 }
 
 export async function deleteSubmittedBook(bookId: number): Promise<void> {

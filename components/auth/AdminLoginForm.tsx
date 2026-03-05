@@ -29,7 +29,7 @@ export function AdminLoginForm() {
       </div>
 
       <form action={action}>
-        <div className="bg-white rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.10)] p-7 space-y-4 stagger">
+        <div className="bg-white rounded-3xl shadow-[var(--shadow-card)] p-7 space-y-4 stagger">
           <PinPad name="pin" maxLength={4} label="Admin PIN" autoFocus />
 
           {state && 'error' in state && (

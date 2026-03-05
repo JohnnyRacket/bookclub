@@ -40,7 +40,7 @@ export default async function MeetingPage() {
           </p>
         </div>
 
-        <div className="bg-white rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.08)] p-6 animate-page-in">
+        <div className="bg-white rounded-3xl shadow-[var(--shadow-card)] p-6 animate-page-in">
           <MeetingForm
             action={updateMeetingSettings}
             defaultDatetime={dtValue}
