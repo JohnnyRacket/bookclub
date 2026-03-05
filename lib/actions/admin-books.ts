@@ -51,6 +51,8 @@ export async function setCurrentBook(bookId: number): Promise<void> {
       .execute();
   });
 
+  await db.deleteFrom('club_settings').where('key', '=', 'next_book_theme').execute();
+
   revalidatePath('/');
   revalidatePath('/admin');
 }
@@ -125,4 +127,61 @@ export async function deleteSubmittedBook(bookId: number): Promise<void> {
     .execute();
 
   revalidatePath('/admin');
+}
+
+export async function addPastBook(
+  formData: FormData
+): Promise<{ error?: string; success?: boolean }> {
+  await requireAdmin();
+
+  const title = (formData.get('title') as string)?.trim();
+  const author = (formData.get('author') as string)?.trim();
+  if (!title || !author) return { error: 'Title and author are required' };
+
+  const readDateStr = (formData.get('read_date') as string)?.trim();
+  if (!readDateStr) return { error: 'Date Read is required' };
+  const readDateMs = Date.parse(readDateStr);
+  if (isNaN(readDateMs)) return { error: 'Invalid date' };
+  const archived_at = Math.floor(readDateMs / 1000);
+
+  const pagesVal = formData.get('pages') as string;
+  const pages = pagesVal ? Number(pagesVal) : null;
+  const yearVal = formData.get('year') as string;
+  const year = yearVal ? Number(yearVal) : null;
+  const genresRaw = (formData.get('genres') as string)?.trim();
+  const genres = genresRaw
+    ? JSON.stringify(genresRaw.split(',').map((g) => g.trim()).filter(Boolean))
+    : null;
+
+  let cover_url: string | null = null;
+  const uploadedFile = formData.get('cover_file') as File | null;
+  const olCoverUrl = (formData.get('cover_url') as string)?.trim() || null;
+
+  if (uploadedFile && uploadedFile.size > 0) {
+    const saved = await saveUploadedCover(uploadedFile);
+    if (saved) cover_url = saved;
+  } else if (olCoverUrl) {
+    const downloaded = await downloadCover(olCoverUrl);
+    if (downloaded) cover_url = downloaded;
+  }
+
+  await db
+    .insertInto('books')
+    .values({
+      status: 'past',
+      title,
+      author,
+      cover_url,
+      pages,
+      year,
+      genres,
+      ol_key: null,
+      submitted_by: null,
+      archived_at,
+    })
+    .execute();
+
+  revalidatePath('/past-reads');
+  revalidatePath('/admin');
+  return { success: true };
 }

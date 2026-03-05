@@ -3,24 +3,28 @@ import { getSession } from '@/lib/auth/session';
 import { getClubConfig } from '@/lib/actions/settings';
 import { getCurrentBook, getPastBooks } from '@/lib/actions/books';
 import { getMySubmissions } from '@/lib/actions/submit';
-import { getMeetingSettings } from '@/lib/actions/settings';
+import { getMeetingSettings, getNextBookTheme } from '@/lib/actions/settings';
+import { getCustomReactions } from '@/lib/actions/reactions';
 import Image from 'next/image';
 import { ActionMenu } from '@/components/ActionMenu';
 import { CurrentBookCard } from '@/components/books/CurrentBookCard';
 import { PastBookCard } from '@/components/books/PastBookCard';
 import { MeetingCard } from '@/components/books/MeetingCard';
 import { CountdownCard } from '@/components/books/CountdownCard';
+import { ThemeCard } from '@/components/books/ThemeCard';
 
 export default async function HomePage() {
   const session = await getSession();
   if (!session) redirect('/join');
 
-  const [currentBook, pastBooks, meetingSettings, mySubmissions, clubConfig] = await Promise.all([
+  const [currentBook, pastBooks, meetingSettings, mySubmissions, clubConfig, nextBookTheme, customReactions] = await Promise.all([
     getCurrentBook(),
     getPastBooks(),
     getMeetingSettings(),
     getMySubmissions(),
     getClubConfig(),
+    getNextBookTheme(),
+    getCustomReactions(),
   ]);
 
   const atSubmissionCap = mySubmissions.length >= clubConfig.maxSubmissionsPerMember;
@@ -60,9 +64,10 @@ export default async function HomePage() {
           <div className="lg:col-span-2">
             <CurrentBookCard
               book={currentBook}
-              reactPresets={clubConfig.reactPresets}
+              emojis={clubConfig.emojiReactions}
               thumbsUpEmoji={clubConfig.thumbsUpEmoji}
               thumbsDownEmoji={clubConfig.thumbsDownEmoji}
+              customReactions={customReactions}
             />
           </div>
 
@@ -72,21 +77,33 @@ export default async function HomePage() {
             {meetingSettings.nextMeetingAt && (
               <CountdownCard nextMeetingAt={meetingSettings.nextMeetingAt} />
             )}
+            <ThemeCard theme={nextBookTheme} />
           </div>
         </div>
 
         {/* Past books */}
         <div className="animate-page-in" style={{ animationDelay: '0.15s' }}>
-          <h2
-            className="text-lg font-semibold text-foreground mb-2"
-            style={{ fontFamily: 'var(--font-fredoka)' }}
-          >
-            Past Reads
-          </h2>
+          <div className="flex items-center justify-between mb-2">
+            <h2
+              className="text-lg font-semibold text-foreground"
+              style={{ fontFamily: 'var(--font-fredoka)' }}
+            >
+              Past Reads
+            </h2>
+            {pastBooks.length >= 3 && (
+              <a
+                href="/past-reads"
+                className="text-xs font-semibold"
+                style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-nunito)' }}
+              >
+                View All →
+              </a>
+            )}
+          </div>
           <div className="w-16 h-0.5 rounded-full mb-4" style={{ background: 'color-mix(in oklch, var(--color-primary) 45%, transparent)' }} />
           <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4">
             {pastBooks.length > 0 ? (
-              pastBooks.map(book => (
+              pastBooks.slice(0, 12).map(book => (
                 <PastBookCard
                   key={book.id}
                   book={book}

@@ -43,6 +43,13 @@ export function ActionMenu({ atSubmissionCap }: { atSubmissionCap: boolean }) {
         >
           Select Next Book
         </button>
+        <button
+          onClick={() => go('/add-reaction')}
+          className="w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-white transition-colors hover:bg-white/20 cursor-pointer"
+          style={{ fontFamily: 'var(--font-nunito)' }}
+        >
+          Add Custom Reaction
+        </button>
         <div className="my-1 border-t border-white/30" />
         <button
           onClick={() => go('/admin')}

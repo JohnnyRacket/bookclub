@@ -2,7 +2,8 @@
 
 import { useTransition, useState } from 'react';
 import { reactBook } from '@/lib/actions/books';
-import { EmojiPicker } from './EmojiPicker';
+import { ReactionPicker } from './ReactionPicker';
+import type { CustomReaction } from '@/lib/actions/reactions';
 
 interface BookReact {
   emoji: string;
@@ -15,12 +16,21 @@ interface BookReactsProps {
   bookId: number;
   reacts: BookReact[];
   locked: boolean;
-  reactPresets?: string[];
+  emojis: string[];
+  customReactions?: CustomReaction[];
 }
 
 const MAX_SHOWN = 3;
 
-export function BookReacts({ bookId, reacts, locked, reactPresets }: BookReactsProps) {
+function EmojiDisplay({ emoji, size }: { emoji: string; size: 'lg' | 'sm' }) {
+  if (emoji.startsWith('/')) {
+    const px = size === 'lg' ? 28 : 22;
+    return <img src={emoji} alt="custom reaction" style={{ width: px, height: px }} className="object-contain" />;
+  }
+  return <span className={size === 'lg' ? 'text-[1.75rem]' : 'text-[1.25rem]'}>{emoji}</span>;
+}
+
+export function BookReacts({ bookId, reacts, locked, emojis, customReactions }: BookReactsProps) {
   const [isPending, startTransition] = useTransition();
   const [pickerOpen, setPickerOpen] = useState(false);
 
@@ -45,15 +55,15 @@ export function BookReacts({ bookId, reacts, locked, reactPresets }: BookReactsP
             <button
               onClick={() => handleReact(emoji)}
               disabled={isPending || locked}
-              className={`leading-none select-none transition-all duration-150 cursor-pointer disabled:cursor-default
+              className={`leading-none select-none transition-all duration-150 cursor-pointer disabled:cursor-default flex items-center justify-center
                 ${locked
-                  ? 'text-[1.75rem]'
-                  : 'text-[1.75rem] hover:scale-125 hover:-translate-y-0.5 active:scale-95'
+                  ? ''
+                  : 'hover:scale-125 hover:-translate-y-0.5 active:scale-95'
                 }
                 ${userReacted ? 'scale-110' : ''}`}
               aria-label={`React with ${emoji}`}
             >
-              {emoji}
+              <EmojiDisplay emoji={emoji} size="lg" />
             </button>
 
             <div className="flex flex-col items-center gap-0.5">
@@ -85,8 +95,9 @@ export function BookReacts({ bookId, reacts, locked, reactPresets }: BookReactsP
 
       {!locked && (
         <div className="flex flex-col items-center gap-1 min-w-[2.5rem]">
-          <EmojiPicker
-            presets={reactPresets ?? []}
+          <ReactionPicker
+            emojis={emojis}
+            customReactions={customReactions}
             onSelect={handleReact}
             open={pickerOpen}
             onOpenChange={setPickerOpen}
@@ -99,7 +110,7 @@ export function BookReacts({ bookId, reacts, locked, reactPresets }: BookReactsP
             >
               <span className="text-gray-500 text-xl font-black leading-none select-none">+</span>
             </button>
-          </EmojiPicker>
+          </ReactionPicker>
         </div>
       )}
     </div>

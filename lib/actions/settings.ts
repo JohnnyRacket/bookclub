@@ -16,7 +16,7 @@ export type ClubConfig = {
   name: string;
   primaryColor: string;
   logoUrl: string | null;
-  reactPresets: string[];
+  emojiReactions: string[];
   maxSubmissionsPerMember: number;
   thumbsUpEmoji: string;
   thumbsDownEmoji: string;
@@ -26,7 +26,7 @@ const CONFIG_KEYS = [
   'club_name',
   'primary_color',
   'logo_url',
-  'react_presets',
+  'emoji_reactions',
   'max_submissions',
   'thumbs_up_emoji',
   'thumbs_down_emoji',
@@ -55,10 +55,10 @@ export async function getClubConfig(): Promise<ClubConfig> {
 
   const map = new Map(rows.map(r => [r.key, r.value]));
 
-  const reactPresetsRaw = map.get('react_presets');
-  const reactPresets = reactPresetsRaw
-    ? reactPresetsRaw.split(',').map(e => e.trim()).filter(Boolean)
-    : clubConfig.reactPresets;
+  // emoji_reactions: map.has distinguishes "not configured" (use default) from "" (0 emojis)
+  const emojiReactions = map.has('emoji_reactions')
+    ? (map.get('emoji_reactions') ?? '').split(',').map(e => e.trim()).filter(Boolean)
+    : clubConfig.emojiReactions;
 
   const maxRaw = map.get('max_submissions');
   const maxSubmissionsPerMember = maxRaw
@@ -69,7 +69,7 @@ export async function getClubConfig(): Promise<ClubConfig> {
     name: map.get('club_name') ?? clubConfig.name,
     primaryColor: map.get('primary_color') ?? clubConfig.primaryColor,
     logoUrl: map.has('logo_url') ? (map.get('logo_url') || null) : null,
-    reactPresets,
+    emojiReactions,
     maxSubmissionsPerMember,
     thumbsUpEmoji: map.get('thumbs_up_emoji') ?? clubConfig.thumbsUpEmoji,
     thumbsDownEmoji: map.get('thumbs_down_emoji') ?? clubConfig.thumbsDownEmoji,
@@ -84,7 +84,6 @@ export async function updateClubConfig(
   const fields: Array<[string, string | null]> = [
     ['club_name', (formData.get('club_name') as string)?.trim() || null],
     ['primary_color', (formData.get('primary_color') as string)?.trim() || null],
-    ['react_presets', (formData.get('react_presets') as string)?.trim() || null],
     ['max_submissions', (formData.get('max_submissions') as string)?.trim() || null],
     ['thumbs_up_emoji', (formData.get('thumbs_up_emoji') as string)?.trim() || null],
     ['thumbs_down_emoji', (formData.get('thumbs_down_emoji') as string)?.trim() || null],
@@ -99,6 +98,14 @@ export async function updateClubConfig(
         .execute();
     }
   }
+
+  // emoji_reactions: always upsert so empty string (0 emojis) is preserved
+  const emojiReactionsValue = (formData.get('emoji_reactions') as string)?.trim() ?? '';
+  await db
+    .insertInto('club_settings')
+    .values({ key: 'emoji_reactions', value: emojiReactionsValue })
+    .onConflict(oc => oc.column('key').doUpdateSet({ value: emojiReactionsValue }))
+    .execute();
 
   // Logo: file upload, remove, or leave unchanged
   const logoRemove = formData.get('logo_remove') === '1';
@@ -119,6 +126,38 @@ export async function updateClubConfig(
   revalidatePath('/');
   revalidatePath('/admin');
   revalidatePath('/submit');
+  return { success: true };
+}
+
+export async function getNextBookTheme(): Promise<string | null> {
+  const row = await db
+    .selectFrom('club_settings')
+    .select('value')
+    .where('key', '=', 'next_book_theme')
+    .executeTakeFirst();
+  return row?.value ?? null;
+}
+
+export async function updateNextBookTheme(
+  formData: FormData
+): Promise<{ error?: string; success?: boolean }> {
+  const session = await getSession();
+  if (!session) return { error: 'Not authenticated' };
+
+  const theme = (formData.get('next_book_theme') as string)?.trim() ?? '';
+
+  if (theme) {
+    await db
+      .insertInto('club_settings')
+      .values({ key: 'next_book_theme', value: theme })
+      .onConflict(oc => oc.column('key').doUpdateSet({ value: theme }))
+      .execute();
+  } else {
+    await db.deleteFrom('club_settings').where('key', '=', 'next_book_theme').execute();
+  }
+
+  revalidatePath('/');
+  revalidatePath('/theme');
   return { success: true };
 }
 

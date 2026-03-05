@@ -1,12 +1,26 @@
-'use client';
+"use client";
 
-import { useTransition, useState, useRef } from 'react';
-import Link from 'next/link';
-import { deleteUserSessions, resetUserPin, type MemberRow } from '@/lib/actions/admin';
-import { setCurrentBook, deleteSubmittedBook, updateBook, type SubmittedBookRow, type CurrentBookAdmin } from '@/lib/actions/admin-books';
-import { updateClubConfig, type ClubConfig } from '@/lib/actions/settings';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { useTransition, useState, useRef } from "react";
+import Link from "next/link";
+import {
+  deleteUserSessions,
+  resetUserPin,
+  type MemberRow,
+} from "@/lib/actions/admin";
+import {
+  setCurrentBook,
+  deleteSubmittedBook,
+  updateBook,
+  type SubmittedBookRow,
+  type CurrentBookAdmin,
+} from "@/lib/actions/admin-books";
+import { updateClubConfig, type ClubConfig } from "@/lib/actions/settings";
+import {
+  deleteCustomReaction,
+  type CustomReaction,
+} from "@/lib/actions/reactions";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,16 +30,16 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+} from "@/components/ui/alert-dialog";
 
 // Distinct soft colors for member avatars
 const AVATAR_COLORS = [
-  'oklch(0.75 0.14 250)',
-  'oklch(0.72 0.14 330)',
-  'oklch(0.72 0.14 160)',
-  'oklch(0.75 0.14 50)',
-  'oklch(0.72 0.14 290)',
-  'oklch(0.75 0.14 200)',
+  "oklch(0.75 0.14 250)",
+  "oklch(0.72 0.14 330)",
+  "oklch(0.72 0.14 160)",
+  "oklch(0.75 0.14 50)",
+  "oklch(0.72 0.14 290)",
+  "oklch(0.75 0.14 200)",
 ];
 
 function getAvatarColor(name: string) {
@@ -58,7 +72,7 @@ function MemberActions({ member }: { member: MemberRow }) {
           size="sm"
           onClick={handleLogout}
           disabled={isPending || member.sessionCount === 0}
-          style={{ fontFamily: 'var(--font-nunito)' }}
+          style={{ fontFamily: "var(--font-nunito)" }}
         >
           Sign out
         </Button>
@@ -67,7 +81,7 @@ function MemberActions({ member }: { member: MemberRow }) {
           size="sm"
           onClick={() => setConfirmReset(true)}
           disabled={isPending}
-          style={{ fontFamily: 'var(--font-nunito)' }}
+          style={{ fontFamily: "var(--font-nunito)" }}
         >
           Reset PIN
         </Button>
@@ -83,7 +97,9 @@ function MemberActions({ member }: { member: MemberRow }) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleResetPin}>Reset PIN</AlertDialogAction>
+            <AlertDialogAction onClick={handleResetPin}>
+              Reset PIN
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -92,10 +108,10 @@ function MemberActions({ member }: { member: MemberRow }) {
 }
 
 function formatDate(unixSec: number) {
-  return new Date(unixSec * 1000).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
+  return new Date(unixSec * 1000).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
   });
 }
 
@@ -107,8 +123,8 @@ function CurrentBookEditor({ book }: { book: CurrentBookAdmin }) {
   const previewUrlRef = useRef<string | null>(null);
 
   const genres = book.genres
-    ? (JSON.parse(book.genres) as string[]).join(', ')
-    : '';
+    ? (JSON.parse(book.genres) as string[]).join(", ")
+    : "";
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -132,55 +148,87 @@ function CurrentBookEditor({ book }: { book: CurrentBookAdmin }) {
       {/* Header row */}
       <div className="px-5 py-4 flex items-center gap-4">
         {coverSrc ? (
-          <img src={coverSrc} alt={book.title} className="w-10 h-14 object-cover rounded-lg flex-shrink-0" />
+          <img
+            src={coverSrc}
+            alt={book.title}
+            className="w-10 h-14 object-cover rounded-lg flex-shrink-0"
+          />
         ) : (
           <div
             className="w-10 h-14 rounded-lg flex-shrink-0 flex items-center justify-center text-lg"
-            style={{ background: 'color-mix(in oklch, var(--color-primary) 12%, white)' }}
+            style={{
+              background:
+                "color-mix(in oklch, var(--color-primary) 12%, white)",
+            }}
           >
             📖
           </div>
         )}
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-foreground truncate" style={{ fontFamily: 'var(--font-fredoka)' }}>
+          <p
+            className="text-sm font-semibold text-foreground truncate"
+            style={{ fontFamily: "var(--font-fredoka)" }}
+          >
             {book.title}
           </p>
-          <p className="text-xs text-muted-foreground truncate" style={{ fontFamily: 'var(--font-nunito)' }}>
+          <p
+            className="text-xs text-muted-foreground truncate"
+            style={{ fontFamily: "var(--font-nunito)" }}
+          >
             {book.author}
           </p>
         </div>
         <button
-          onClick={() => { setEditing(v => !v); setError(null); setCoverPreview(null); }}
+          onClick={() => {
+            setEditing((v) => !v);
+            setError(null);
+            setCoverPreview(null);
+          }}
           className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors flex-shrink-0"
-          style={{ fontFamily: 'var(--font-nunito)' }}
+          style={{ fontFamily: "var(--font-nunito)" }}
         >
-          {editing ? 'Cancel' : 'Edit'}
+          {editing ? "Cancel" : "Edit"}
         </button>
       </div>
 
       {/* Edit form */}
       {editing && (
-        <form onSubmit={handleSubmit} className="px-5 pb-5 border-t border-gray-100 pt-4 space-y-4">
-          <input type="hidden" name="existing_cover_url" value={book.cover_url ?? ''} />
+        <form
+          onSubmit={handleSubmit}
+          className="px-5 pb-5 border-t border-gray-100 pt-4 space-y-4"
+        >
+          <input
+            type="hidden"
+            name="existing_cover_url"
+            value={book.cover_url ?? ""}
+          />
           <input type="hidden" name="cover_url" value="" />
 
           {/* Cover */}
           <div>
-            <label className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide" style={{ fontFamily: 'var(--font-nunito)' }}>
+            <label
+              className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide"
+              style={{ fontFamily: "var(--font-nunito)" }}
+            >
               Cover Image
             </label>
             {coverSrc && (
               <div className="flex justify-center mb-3">
-                <img src={coverSrc} alt="Cover preview" className="w-20 h-28 object-cover rounded-xl shadow-md" />
+                <img
+                  src={coverSrc}
+                  alt="Cover preview"
+                  className="w-20 h-28 object-cover rounded-xl shadow-md"
+                />
               </div>
             )}
             <input
               type="file"
               name="cover_file"
               accept="image/*"
-              onChange={e => {
+              onChange={(e) => {
                 const file = e.target.files?.[0];
-                if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+                if (previewUrlRef.current)
+                  URL.revokeObjectURL(previewUrlRef.current);
                 const url = file ? URL.createObjectURL(file) : null;
                 previewUrlRef.current = url;
                 setCoverPreview(url);
@@ -191,7 +239,10 @@ function CurrentBookEditor({ book }: { book: CurrentBookAdmin }) {
 
           {/* Title */}
           <div>
-            <label className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide" style={{ fontFamily: 'var(--font-nunito)' }}>
+            <label
+              className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide"
+              style={{ fontFamily: "var(--font-nunito)" }}
+            >
               Title <span className="text-red-400">*</span>
             </label>
             <input
@@ -200,13 +251,16 @@ function CurrentBookEditor({ book }: { book: CurrentBookAdmin }) {
               required
               defaultValue={book.title}
               className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 transition-shadow"
-              style={{ fontFamily: 'var(--font-nunito)' }}
+              style={{ fontFamily: "var(--font-nunito)" }}
             />
           </div>
 
           {/* Author */}
           <div>
-            <label className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide" style={{ fontFamily: 'var(--font-nunito)' }}>
+            <label
+              className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide"
+              style={{ fontFamily: "var(--font-nunito)" }}
+            >
               Author <span className="text-red-400">*</span>
             </label>
             <input
@@ -215,45 +269,55 @@ function CurrentBookEditor({ book }: { book: CurrentBookAdmin }) {
               required
               defaultValue={book.author}
               className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 transition-shadow"
-              style={{ fontFamily: 'var(--font-nunito)' }}
+              style={{ fontFamily: "var(--font-nunito)" }}
             />
           </div>
 
           {/* Year + Pages */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide" style={{ fontFamily: 'var(--font-nunito)' }}>
+              <label
+                className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide"
+                style={{ fontFamily: "var(--font-nunito)" }}
+              >
                 Year
               </label>
               <input
                 type="number"
                 name="year"
-                defaultValue={book.year ?? ''}
+                defaultValue={book.year ?? ""}
                 min={1000}
                 max={2100}
                 className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2"
-                style={{ fontFamily: 'var(--font-nunito)' }}
+                style={{ fontFamily: "var(--font-nunito)" }}
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide" style={{ fontFamily: 'var(--font-nunito)' }}>
+              <label
+                className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide"
+                style={{ fontFamily: "var(--font-nunito)" }}
+              >
                 Pages
               </label>
               <input
                 type="number"
                 name="pages"
-                defaultValue={book.pages ?? ''}
+                defaultValue={book.pages ?? ""}
                 min={1}
                 className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2"
-                style={{ fontFamily: 'var(--font-nunito)' }}
+                style={{ fontFamily: "var(--font-nunito)" }}
               />
             </div>
           </div>
 
           {/* Genres */}
           <div>
-            <label className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide" style={{ fontFamily: 'var(--font-nunito)' }}>
-              Genres <span className="font-normal normal-case">(comma-separated)</span>
+            <label
+              className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide"
+              style={{ fontFamily: "var(--font-nunito)" }}
+            >
+              Genres{" "}
+              <span className="font-normal normal-case">(comma-separated)</span>
             </label>
             <input
               type="text"
@@ -261,12 +325,15 @@ function CurrentBookEditor({ book }: { book: CurrentBookAdmin }) {
               defaultValue={genres}
               placeholder="Fiction, Historical, Mystery…"
               className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2"
-              style={{ fontFamily: 'var(--font-nunito)' }}
+              style={{ fontFamily: "var(--font-nunito)" }}
             />
           </div>
 
           {error && (
-            <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-700" style={{ fontFamily: 'var(--font-nunito)' }}>
+            <div
+              className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-700"
+              style={{ fontFamily: "var(--font-nunito)" }}
+            >
               {error}
             </div>
           )}
@@ -275,9 +342,12 @@ function CurrentBookEditor({ book }: { book: CurrentBookAdmin }) {
             type="submit"
             disabled={isPending}
             className="w-full"
-            style={{ background: 'var(--color-primary)', fontFamily: 'var(--font-nunito)' }}
+            style={{
+              background: "var(--color-primary)",
+              fontFamily: "var(--font-nunito)",
+            }}
           >
-            {isPending ? 'Saving…' : 'Save Changes'}
+            {isPending ? "Saving…" : "Save Changes"}
           </Button>
         </form>
       )}
@@ -287,7 +357,9 @@ function CurrentBookEditor({ book }: { book: CurrentBookAdmin }) {
 
 function SubmittedBookActions({ book }: { book: SubmittedBookRow }) {
   const [isPending, startTransition] = useTransition();
-  const [confirmAction, setConfirmAction] = useState<'set-current' | 'reject' | null>(null);
+  const [confirmAction, setConfirmAction] = useState<
+    "set-current" | "reject" | null
+  >(null);
 
   function handleSetCurrent() {
     startTransition(async () => {
@@ -307,43 +379,56 @@ function SubmittedBookActions({ book }: { book: SubmittedBookRow }) {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => setConfirmAction('set-current')}
+          onClick={() => setConfirmAction("set-current")}
           disabled={isPending}
           className="text-green-700 border-green-200 hover:bg-green-50"
-          style={{ fontFamily: 'var(--font-nunito)' }}
+          style={{ fontFamily: "var(--font-nunito)" }}
         >
           Set Current
         </Button>
         <Button
           variant="destructive"
           size="sm"
-          onClick={() => setConfirmAction('reject')}
+          onClick={() => setConfirmAction("reject")}
           disabled={isPending}
-          style={{ fontFamily: 'var(--font-nunito)' }}
+          style={{ fontFamily: "var(--font-nunito)" }}
         >
           Reject
         </Button>
       </div>
 
-      <AlertDialog open={confirmAction !== null} onOpenChange={open => !open && setConfirmAction(null)}>
+      <AlertDialog
+        open={confirmAction !== null}
+        onOpenChange={(open) => !open && setConfirmAction(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {confirmAction === 'set-current' ? `Set "${book.title}" as current?` : `Reject "${book.title}"?`}
+              {confirmAction === "set-current"
+                ? `Set "${book.title}" as current?`
+                : `Reject "${book.title}"?`}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {confirmAction === 'set-current'
-                ? 'This will replace the current book for the club.'
-                : 'This will permanently delete this submission.'}
+              {confirmAction === "set-current"
+                ? "This will replace the current book for the club."
+                : "This will permanently delete this submission."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={confirmAction === 'set-current' ? handleSetCurrent : handleDelete}
-              className={confirmAction === 'reject' ? 'bg-destructive text-white hover:bg-destructive/90' : ''}
+              onClick={
+                confirmAction === "set-current"
+                  ? handleSetCurrent
+                  : handleDelete
+              }
+              className={
+                confirmAction === "reject"
+                  ? "bg-destructive text-white hover:bg-destructive/90"
+                  : ""
+              }
             >
-              {confirmAction === 'set-current' ? 'Set Current' : 'Reject'}
+              {confirmAction === "set-current" ? "Set Current" : "Reject"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -354,50 +439,54 @@ function SubmittedBookActions({ book }: { book: SubmittedBookRow }) {
 
 function ClubSettingsEditor({ settings }: { settings: ClubConfig }) {
   const [isPending, startTransition] = useTransition();
-  const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [colorHex, setColorHex] = useState(settings.primaryColor);
-  const [reactPreviewRaw, setReactPreviewRaw] = useState(settings.reactPresets.join(','));
+  const [emojiRaw, setEmojiRaw] = useState(settings.emojiReactions.join(","));
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [logoRemoved, setLogoRemoved] = useState(false);
   const logoPreviewUrlRef = useRef<string | null>(null);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setStatus('idle');
+    setStatus("idle");
     setErrorMsg(null);
     const formData = new FormData(e.currentTarget);
     startTransition(async () => {
       const result = await updateClubConfig(formData);
       if (result.error) {
-        setStatus('error');
+        setStatus("error");
         setErrorMsg(result.error);
       } else {
-        setStatus('success');
+        setStatus("success");
       }
     });
   }
 
-  const reactPreviewEmojis = reactPreviewRaw
-    .split(',')
-    .map(e => e.trim())
-    .filter(Boolean);
-
   return (
     <div className="bg-white rounded-2xl shadow-[var(--shadow-card-sm)] overflow-hidden">
       <div className="px-5 py-4 border-b border-gray-100">
-        <p className="text-sm font-semibold text-foreground" style={{ fontFamily: 'var(--font-fredoka)' }}>
+        <p
+          className="text-sm font-semibold text-foreground"
+          style={{ fontFamily: "var(--font-fredoka)" }}
+        >
           Club Settings
         </p>
-        <p className="text-xs text-muted-foreground mt-0.5" style={{ fontFamily: 'var(--font-nunito)' }}>
-          Overrides env var defaults
+        <p
+          className="text-xs text-muted-foreground mt-0.5"
+          style={{ fontFamily: "var(--font-nunito)" }}
+        >
+          Overrides defaults
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="px-5 pb-5 pt-4 space-y-4">
         {/* Club Name */}
         <div>
-          <label className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide" style={{ fontFamily: 'var(--font-nunito)' }}>
+          <label
+            className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide"
+            style={{ fontFamily: "var(--font-nunito)" }}
+          >
             Club Name
           </label>
           <input
@@ -405,13 +494,16 @@ function ClubSettingsEditor({ settings }: { settings: ClubConfig }) {
             name="club_name"
             defaultValue={settings.name}
             className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 transition-shadow"
-            style={{ fontFamily: 'var(--font-nunito)' }}
+            style={{ fontFamily: "var(--font-nunito)" }}
           />
         </div>
 
         {/* Primary Color */}
         <div>
-          <label className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide" style={{ fontFamily: 'var(--font-nunito)' }}>
+          <label
+            className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide"
+            style={{ fontFamily: "var(--font-nunito)" }}
+          >
             Primary Color
           </label>
           <div className="flex items-center gap-3">
@@ -419,12 +511,12 @@ function ClubSettingsEditor({ settings }: { settings: ClubConfig }) {
               type="color"
               name="primary_color"
               value={colorHex}
-              onChange={e => setColorHex(e.target.value)}
+              onChange={(e) => setColorHex(e.target.value)}
               className="h-10 w-14 rounded-lg border border-gray-200 cursor-pointer p-0.5"
             />
             <span
               className="text-sm font-mono text-muted-foreground"
-              style={{ fontFamily: 'var(--font-nunito)' }}
+              style={{ fontFamily: "var(--font-nunito)" }}
             >
               {colorHex}
             </span>
@@ -433,26 +525,40 @@ function ClubSettingsEditor({ settings }: { settings: ClubConfig }) {
 
         {/* Logo Upload */}
         <div>
-          <label className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide" style={{ fontFamily: 'var(--font-nunito)' }}>
+          <label
+            className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide"
+            style={{ fontFamily: "var(--font-nunito)" }}
+          >
             Logo <span className="font-normal normal-case">(optional)</span>
           </label>
           {/* Hidden remove flag */}
-          <input type="hidden" name="logo_remove" value={logoRemoved ? '1' : '0'} />
+          <input
+            type="hidden"
+            name="logo_remove"
+            value={logoRemoved ? "1" : "0"}
+          />
           {/* Current / preview */}
           {(() => {
             const src = logoRemoved ? null : (logoPreview ?? settings.logoUrl);
             return src ? (
               <div className="flex items-center gap-3 mb-2">
-                <img src={src} alt="Logo preview" className="h-12 w-12 object-contain rounded-lg border border-gray-200" />
+                <img
+                  src={src}
+                  alt="Logo preview"
+                  className="h-12 w-12 object-contain rounded-lg border border-gray-200"
+                />
                 <button
                   type="button"
                   onClick={() => {
-                    if (logoPreviewUrlRef.current) { URL.revokeObjectURL(logoPreviewUrlRef.current); logoPreviewUrlRef.current = null; }
+                    if (logoPreviewUrlRef.current) {
+                      URL.revokeObjectURL(logoPreviewUrlRef.current);
+                      logoPreviewUrlRef.current = null;
+                    }
                     setLogoPreview(null);
                     setLogoRemoved(true);
                   }}
                   className="text-xs text-red-500 hover:text-red-700 font-semibold"
-                  style={{ fontFamily: 'var(--font-nunito)' }}
+                  style={{ fontFamily: "var(--font-nunito)" }}
                 >
                   Remove
                 </button>
@@ -463,9 +569,10 @@ function ClubSettingsEditor({ settings }: { settings: ClubConfig }) {
             type="file"
             name="logo_file"
             accept="image/*"
-            onChange={e => {
+            onChange={(e) => {
               const file = e.target.files?.[0];
-              if (logoPreviewUrlRef.current) URL.revokeObjectURL(logoPreviewUrlRef.current);
+              if (logoPreviewUrlRef.current)
+                URL.revokeObjectURL(logoPreviewUrlRef.current);
               const url = file ? URL.createObjectURL(file) : null;
               logoPreviewUrlRef.current = url;
               setLogoPreview(url);
@@ -475,25 +582,36 @@ function ClubSettingsEditor({ settings }: { settings: ClubConfig }) {
           />
         </div>
 
-        {/* Reaction Presets */}
+        {/* Emoji Reactions */}
         <div>
-          <label className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide" style={{ fontFamily: 'var(--font-nunito)' }}>
-            Reaction Presets <span className="font-normal normal-case">(comma-separated)</span>
+          <label
+            className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide"
+            style={{ fontFamily: "var(--font-nunito)" }}
+          >
+            Emoji Reactions{" "}
+            <span className="font-normal normal-case">
+              (comma-separated, leave blank for none)
+            </span>
           </label>
-          <input
-            type="text"
-            name="react_presets"
-            value={reactPreviewRaw}
-            onChange={e => setReactPreviewRaw(e.target.value)}
-            placeholder="❤️,😂,🔥,👏,🤔"
-            className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 transition-shadow"
-            style={{ fontFamily: 'var(--font-nunito)' }}
+          <textarea
+            name="emoji_reactions"
+            value={emojiRaw}
+            onChange={(e) => setEmojiRaw(e.target.value)}
+            rows={3}
+            className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 transition-shadow resize-none"
+            style={{ fontFamily: "var(--font-nunito)" }}
           />
-          {reactPreviewEmojis.length > 0 && (
-            <div className="flex gap-1.5 mt-2">
-              {reactPreviewEmojis.map((emoji, i) => (
-                <span key={i} className="text-xl">{emoji}</span>
-              ))}
+          {emojiRaw.trim() && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {emojiRaw
+                .split(",")
+                .map((e) => e.trim())
+                .filter(Boolean)
+                .map((emoji, i) => (
+                  <span key={i} className="text-xl">
+                    {emoji}
+                  </span>
+                ))}
             </div>
           )}
         </div>
@@ -501,7 +619,10 @@ function ClubSettingsEditor({ settings }: { settings: ClubConfig }) {
         {/* Thumbs emojis */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide" style={{ fontFamily: 'var(--font-nunito)' }}>
+            <label
+              className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide"
+              style={{ fontFamily: "var(--font-nunito)" }}
+            >
               Thumbs Up
             </label>
             <input
@@ -509,11 +630,14 @@ function ClubSettingsEditor({ settings }: { settings: ClubConfig }) {
               name="thumbs_up_emoji"
               defaultValue={settings.thumbsUpEmoji}
               className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 transition-shadow"
-              style={{ fontFamily: 'var(--font-nunito)' }}
+              style={{ fontFamily: "var(--font-nunito)" }}
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide" style={{ fontFamily: 'var(--font-nunito)' }}>
+            <label
+              className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide"
+              style={{ fontFamily: "var(--font-nunito)" }}
+            >
               Thumbs Down
             </label>
             <input
@@ -521,14 +645,17 @@ function ClubSettingsEditor({ settings }: { settings: ClubConfig }) {
               name="thumbs_down_emoji"
               defaultValue={settings.thumbsDownEmoji}
               className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 transition-shadow"
-              style={{ fontFamily: 'var(--font-nunito)' }}
+              style={{ fontFamily: "var(--font-nunito)" }}
             />
           </div>
         </div>
 
         {/* Max Submissions */}
         <div>
-          <label className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide" style={{ fontFamily: 'var(--font-nunito)' }}>
+          <label
+            className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide"
+            style={{ fontFamily: "var(--font-nunito)" }}
+          >
             Max Submissions Per Member
           </label>
           <input
@@ -537,17 +664,23 @@ function ClubSettingsEditor({ settings }: { settings: ClubConfig }) {
             defaultValue={settings.maxSubmissionsPerMember}
             min={1}
             className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 transition-shadow"
-            style={{ fontFamily: 'var(--font-nunito)' }}
+            style={{ fontFamily: "var(--font-nunito)" }}
           />
         </div>
 
-        {status === 'error' && errorMsg && (
-          <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-700" style={{ fontFamily: 'var(--font-nunito)' }}>
+        {status === "error" && errorMsg && (
+          <div
+            className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-700"
+            style={{ fontFamily: "var(--font-nunito)" }}
+          >
             {errorMsg}
           </div>
         )}
-        {status === 'success' && (
-          <div className="rounded-xl bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700" style={{ fontFamily: 'var(--font-nunito)' }}>
+        {status === "success" && (
+          <div
+            className="rounded-xl bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700"
+            style={{ fontFamily: "var(--font-nunito)" }}
+          >
             Settings saved.
           </div>
         )}
@@ -556,16 +689,113 @@ function ClubSettingsEditor({ settings }: { settings: ClubConfig }) {
           type="submit"
           disabled={isPending}
           className="w-full"
-          style={{ background: 'var(--color-primary)', fontFamily: 'var(--font-nunito)' }}
+          style={{
+            background: "var(--color-primary)",
+            fontFamily: "var(--font-nunito)",
+          }}
         >
-          {isPending ? 'Saving…' : 'Save Settings'}
+          {isPending ? "Saving…" : "Save Settings"}
         </Button>
       </form>
     </div>
   );
 }
 
-export function AdminPanel({ members, submittedBooks, currentBook, clubSettings }: { members: MemberRow[]; submittedBooks: SubmittedBookRow[]; currentBook: CurrentBookAdmin | null; clubSettings: ClubConfig }) {
+function CustomReactionsEditor({ reactions }: { reactions: CustomReaction[] }) {
+  const [isPending, startTransition] = useTransition();
+  const [confirmId, setConfirmId] = useState<number | null>(null);
+
+  function handleDelete(id: number) {
+    startTransition(async () => {
+      await deleteCustomReaction(id);
+      setConfirmId(null);
+    });
+  }
+
+  if (reactions.length === 0) {
+    return (
+      <div
+        className="bg-white rounded-3xl shadow-[var(--shadow-card)] p-8 text-center text-sm text-muted-foreground"
+        style={{ fontFamily: "var(--font-nunito)" }}
+      >
+        No custom reactions yet.
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="bg-white rounded-2xl shadow-[var(--shadow-card-sm)] p-4">
+        <div className="grid grid-cols-5 gap-3">
+          {reactions.map((reaction) => (
+            <div key={reaction.id} className="relative group">
+              <div className="w-full aspect-square rounded-xl overflow-hidden border border-gray-100 flex items-center justify-center bg-gray-50">
+                <img
+                  src={reaction.image_path}
+                  alt={reaction.label ?? "reaction"}
+                  className="w-14 h-14 object-contain"
+                />
+              </div>
+              {reaction.label && (
+                <p
+                  className="text-[10px] text-center text-muted-foreground mt-1 truncate"
+                  style={{ fontFamily: "var(--font-nunito)" }}
+                >
+                  {reaction.label}
+                </p>
+              )}
+              <button
+                onClick={() => setConfirmId(reaction.id)}
+                disabled={isPending}
+                className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-red-600"
+                aria-label="Delete reaction"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <AlertDialog
+        open={confirmId !== null}
+        onOpenChange={(open) => !open && setConfirmId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this reaction?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove the reaction and its image file.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => confirmId !== null && handleDelete(confirmId)}
+              className="bg-destructive text-white hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}
+
+export function AdminPanel({
+  members,
+  submittedBooks,
+  currentBook,
+  clubSettings,
+  customReactions,
+}: {
+  members: MemberRow[];
+  submittedBooks: SubmittedBookRow[];
+  currentBook: CurrentBookAdmin | null;
+  clubSettings: ClubConfig;
+  customReactions: CustomReaction[];
+}) {
   return (
     <div className="w-full max-w-xl animate-page-in">
       {/* Header */}
@@ -573,26 +803,32 @@ export function AdminPanel({ members, submittedBooks, currentBook, clubSettings 
         <Link
           href="/"
           className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors mb-3"
-          style={{ fontFamily: 'var(--font-nunito)' }}
+          style={{ fontFamily: "var(--font-nunito)" }}
         >
           ← Home
         </Link>
         <div className="text-center">
-        <p
-          className="text-xs font-bold uppercase tracking-widest mb-1"
-          style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-nunito)' }}
-        >
-          Admin
-        </p>
-        <h1
-          className="text-3xl font-semibold text-foreground"
-          style={{ fontFamily: 'var(--font-fredoka)' }}
-        >
-          Club Admin
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>
-          {members.length} member{members.length !== 1 ? 's' : ''} in the club
-        </p>
+          <p
+            className="text-xs font-bold uppercase tracking-widest mb-1"
+            style={{
+              color: "var(--color-primary)",
+              fontFamily: "var(--font-nunito)",
+            }}
+          >
+            Admin
+          </p>
+          <h1
+            className="text-3xl font-semibold text-foreground"
+            style={{ fontFamily: "var(--font-fredoka)" }}
+          >
+            Club Admin
+          </h1>
+          <p
+            className="mt-1 text-sm text-muted-foreground"
+            style={{ fontFamily: "var(--font-nunito)" }}
+          >
+            {members.length} member{members.length !== 1 ? "s" : ""} in the club
+          </p>
         </div>
       </div>
 
@@ -600,7 +836,10 @@ export function AdminPanel({ members, submittedBooks, currentBook, clubSettings 
       {currentBook && (
         <div className="mb-8 stagger">
           <div className="mb-4 text-center">
-            <h2 className="text-2xl font-semibold text-foreground" style={{ fontFamily: 'var(--font-fredoka)' }}>
+            <h2
+              className="text-2xl font-semibold text-foreground"
+              style={{ fontFamily: "var(--font-fredoka)" }}
+            >
               Current Book
             </h2>
           </div>
@@ -610,7 +849,10 @@ export function AdminPanel({ members, submittedBooks, currentBook, clubSettings 
 
       {/* Members */}
       <div className="mb-4 text-center stagger">
-        <h2 className="text-2xl font-semibold text-foreground" style={{ fontFamily: 'var(--font-fredoka)' }}>
+        <h2
+          className="text-2xl font-semibold text-foreground"
+          style={{ fontFamily: "var(--font-fredoka)" }}
+        >
           Members
         </h2>
       </div>
@@ -618,8 +860,10 @@ export function AdminPanel({ members, submittedBooks, currentBook, clubSettings 
       {/* Member list — each row is its own floating card */}
       <div className="space-y-3 stagger">
         {members.length === 0 ? (
-          <div className="bg-white rounded-3xl shadow-[var(--shadow-card)] p-10 text-center text-sm text-muted-foreground"
-            style={{ fontFamily: 'var(--font-nunito)' }}>
+          <div
+            className="bg-white rounded-3xl shadow-[var(--shadow-card)] p-10 text-center text-sm text-muted-foreground"
+            style={{ fontFamily: "var(--font-nunito)" }}
+          >
             No members yet.
           </div>
         ) : (
@@ -631,7 +875,10 @@ export function AdminPanel({ members, submittedBooks, currentBook, clubSettings 
               {/* Avatar */}
               <div
                 className="h-10 w-10 rounded-2xl flex-shrink-0 flex items-center justify-center text-white text-sm font-bold"
-                style={{ background: getAvatarColor(member.name), fontFamily: 'var(--font-fredoka)' }}
+                style={{
+                  background: getAvatarColor(member.name),
+                  fontFamily: "var(--font-fredoka)",
+                }}
               >
                 {member.name.charAt(0).toUpperCase()}
               </div>
@@ -641,23 +888,30 @@ export function AdminPanel({ members, submittedBooks, currentBook, clubSettings 
                 <div className="flex items-center gap-2">
                   <span
                     className="text-sm font-semibold text-foreground truncate"
-                    style={{ fontFamily: 'var(--font-fredoka)' }}
+                    style={{ fontFamily: "var(--font-fredoka)" }}
                   >
                     {member.name}
                   </span>
                   {member.pin_reset === 1 && (
-                    <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-200 text-[10px]" style={{ fontFamily: 'var(--font-nunito)' }}>
+                    <Badge
+                      variant="outline"
+                      className="bg-amber-100 text-amber-700 border-amber-200 text-[10px]"
+                      style={{ fontFamily: "var(--font-nunito)" }}
+                    >
                       PIN reset
                     </Badge>
                   )}
                 </div>
                 <div
                   className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5"
-                  style={{ fontFamily: 'var(--font-nunito)' }}
+                  style={{ fontFamily: "var(--font-nunito)" }}
                 >
                   <span>Joined {formatDate(member.created_at)}</span>
-                  <span>·</span>
-                  <span>{member.sessionCount} session{member.sessionCount !== 1 ? 's' : ''}</span>
+                  <span className="hidden sm:inline">·</span>
+                  <span className="hidden sm:inline">
+                    {member.sessionCount} session
+                    {member.sessionCount !== 1 ? "s" : ""}
+                  </span>
                 </div>
               </div>
 
@@ -667,30 +921,21 @@ export function AdminPanel({ members, submittedBooks, currentBook, clubSettings 
         )}
       </div>
 
-      {/* Club Settings */}
-      <div className="mt-10 stagger">
-        <div className="mb-4 text-center">
-          <h2
-            className="text-2xl font-semibold text-foreground"
-            style={{ fontFamily: 'var(--font-fredoka)' }}
-          >
-            Club Settings
-          </h2>
-        </div>
-        <ClubSettingsEditor settings={clubSettings} />
-      </div>
-
       {/* Submitted Books */}
       <div className="mt-10 stagger">
         <div className="mb-4 text-center">
           <h2
             className="text-2xl font-semibold text-foreground"
-            style={{ fontFamily: 'var(--font-fredoka)' }}
+            style={{ fontFamily: "var(--font-fredoka)" }}
           >
             Submitted Books
           </h2>
-          <p className="mt-1 text-sm text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>
-            {submittedBooks.length} pending submission{submittedBooks.length !== 1 ? 's' : ''}
+          <p
+            className="mt-1 text-sm text-muted-foreground"
+            style={{ fontFamily: "var(--font-nunito)" }}
+          >
+            {submittedBooks.length} pending submission
+            {submittedBooks.length !== 1 ? "s" : ""}
           </p>
         </div>
 
@@ -698,12 +943,12 @@ export function AdminPanel({ members, submittedBooks, currentBook, clubSettings 
           {submittedBooks.length === 0 ? (
             <div
               className="bg-white rounded-3xl shadow-[var(--shadow-card)] p-8 text-center text-sm text-muted-foreground"
-              style={{ fontFamily: 'var(--font-nunito)' }}
+              style={{ fontFamily: "var(--font-nunito)" }}
             >
               No submissions yet.
             </div>
           ) : (
-            submittedBooks.map(book => (
+            submittedBooks.map((book) => (
               <div
                 key={book.id}
                 className="bg-white rounded-2xl shadow-[var(--shadow-card-sm)] px-5 py-4 flex items-center gap-4"
@@ -717,7 +962,10 @@ export function AdminPanel({ members, submittedBooks, currentBook, clubSettings 
                 ) : (
                   <div
                     className="w-10 h-14 rounded-lg flex-shrink-0 flex items-center justify-center text-lg"
-                    style={{ background: 'color-mix(in oklch, var(--color-primary) 12%, white)' }}
+                    style={{
+                      background:
+                        "color-mix(in oklch, var(--color-primary) 12%, white)",
+                    }}
                   >
                     📖
                   </div>
@@ -725,14 +973,21 @@ export function AdminPanel({ members, submittedBooks, currentBook, clubSettings 
                 <div className="min-w-0 flex-1">
                   <p
                     className="text-sm font-semibold text-foreground truncate"
-                    style={{ fontFamily: 'var(--font-fredoka)' }}
+                    style={{ fontFamily: "var(--font-fredoka)" }}
                   >
                     {book.title}
                   </p>
-                  <p className="text-xs text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>
+                  <p
+                    className="text-xs text-muted-foreground"
+                    style={{ fontFamily: "var(--font-nunito)" }}
+                  >
                     {book.author}
-                    {book.submitter_name && <span className="ml-2">· by {book.submitter_name}</span>}
-                    <span className="ml-2">· {formatDate(book.created_at)}</span>
+                    {book.submitter_name && (
+                      <span className="ml-2">· by {book.submitter_name}</span>
+                    )}
+                    <span className="ml-2">
+                      · {formatDate(book.created_at)}
+                    </span>
                   </p>
                 </div>
                 <SubmittedBookActions book={book} />
@@ -740,6 +995,79 @@ export function AdminPanel({ members, submittedBooks, currentBook, clubSettings 
             ))
           )}
         </div>
+      </div>
+
+      {/* Tools */}
+      <div className="mt-10 stagger">
+        <div className="mb-4 text-center">
+          <h2
+            className="text-2xl font-semibold text-foreground"
+            style={{ fontFamily: "var(--font-fredoka)" }}
+          >
+            Tools
+          </h2>
+        </div>
+        <Link
+          href="/admin/backfill"
+          className="flex items-center gap-4 bg-white rounded-2xl shadow-[var(--shadow-card-sm)] px-5 py-4 hover:shadow-md transition-shadow"
+        >
+          <div
+            className="h-10 w-10 rounded-2xl flex-shrink-0 flex items-center justify-center text-lg"
+            style={{
+              background:
+                "color-mix(in oklch, var(--color-primary) 12%, white)",
+            }}
+          >
+            📚
+          </div>
+          <div className="min-w-0 flex-1">
+            <p
+              className="text-sm font-semibold text-foreground"
+              style={{ fontFamily: "var(--font-fredoka)" }}
+            >
+              Backfill Past Reads
+            </p>
+            <p
+              className="text-xs text-muted-foreground"
+              style={{ fontFamily: "var(--font-nunito)" }}
+            >
+              Add historical books to the archive with a custom read date
+            </p>
+          </div>
+          <span className="text-muted-foreground text-sm">→</span>
+        </Link>
+      </div>
+
+      {/* Custom Reactions */}
+      <div className="mt-10 stagger">
+        <div className="mb-4 text-center">
+          <h2
+            className="text-2xl font-semibold text-foreground"
+            style={{ fontFamily: "var(--font-fredoka)" }}
+          >
+            Custom Reactions
+          </h2>
+          <p
+            className="mt-1 text-sm text-muted-foreground"
+            style={{ fontFamily: "var(--font-nunito)" }}
+          >
+            {customReactions.length} custom reaction{customReactions.length !== 1 ? "s" : ""}
+          </p>
+        </div>
+        <CustomReactionsEditor reactions={customReactions} />
+      </div>
+
+      {/* Club Settings */}
+      <div className="mt-10 stagger">
+        <div className="mb-4 text-center">
+          <h2
+            className="text-2xl font-semibold text-foreground"
+            style={{ fontFamily: "var(--font-fredoka)" }}
+          >
+            Club Settings
+          </h2>
+        </div>
+        <ClubSettingsEditor settings={clubSettings} />
       </div>
     </div>
   );

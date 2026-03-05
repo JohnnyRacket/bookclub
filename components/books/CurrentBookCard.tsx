@@ -3,15 +3,17 @@
 import { BookThumbs } from './BookThumbs';
 import { BookReacts } from './BookReacts';
 import type { BookWithStats } from '@/lib/actions/books';
+import type { CustomReaction } from '@/lib/actions/reactions';
 
 interface CurrentBookCardProps {
   book: BookWithStats | null;
-  reactPresets: string[];
+  emojis: string[];
   thumbsUpEmoji: string;
   thumbsDownEmoji: string;
+  customReactions?: CustomReaction[];
 }
 
-export function CurrentBookCard({ book, reactPresets, thumbsUpEmoji, thumbsDownEmoji }: CurrentBookCardProps) {
+export function CurrentBookCard({ book, emojis, thumbsUpEmoji, thumbsDownEmoji, customReactions }: CurrentBookCardProps) {
 
   if (!book) {
     return (
@@ -133,7 +135,8 @@ export function CurrentBookCard({ book, reactPresets, thumbsUpEmoji, thumbsDownE
             bookId={book.id}
             reacts={book.reacts}
             locked={false}
-            reactPresets={reactPresets}
+            emojis={emojis}
+            customReactions={customReactions}
           />
         </div>
       </div>

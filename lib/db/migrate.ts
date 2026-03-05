@@ -63,6 +63,14 @@ export function runMigrations(db: Database.Database): void {
       value TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS custom_reactions (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      image_path  TEXT    NOT NULL,
+      label       TEXT,
+      uploaded_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      created_at  TEXT    NOT NULL DEFAULT (datetime('now'))
+    );
+
     CREATE INDEX IF NOT EXISTS idx_books_status     ON books(status);
     CREATE INDEX IF NOT EXISTS idx_book_thumbs_book ON book_thumbs(book_id);
     CREATE INDEX IF NOT EXISTS idx_book_reacts_book ON book_reacts(book_id);

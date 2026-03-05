@@ -56,6 +56,14 @@ export interface ClubSettingsTable {
   value: string;
 }
 
+export interface CustomReactionsTable {
+  id: Generated<number>;
+  image_path: string;
+  label: string | null;
+  uploaded_by: number | null;
+  created_at: Generated<string>;
+}
+
 export interface DB {
   users: UsersTable;
   sessions: SessionsTable;
@@ -64,6 +72,7 @@ export interface DB {
   book_reacts: BookReactsTable;
   ol_cache: OlCacheTable;
   club_settings: ClubSettingsTable;
+  custom_reactions: CustomReactionsTable;
 }
 
 export type User = Selectable<UsersTable>;
