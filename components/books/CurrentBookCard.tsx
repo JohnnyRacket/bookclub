@@ -4,6 +4,7 @@ import { BookThumbs } from './BookThumbs';
 import { BookReacts } from './BookReacts';
 import type { BookWithStats } from '@/lib/actions/books';
 import type { CustomReaction } from '@/lib/actions/reactions';
+import { useBookStats } from '@/hooks/useBookStats';
 
 interface CurrentBookCardProps {
   book: BookWithStats | null;
@@ -14,6 +15,12 @@ interface CurrentBookCardProps {
 }
 
 export function CurrentBookCard({ book, emojis, thumbsUpEmoji, thumbsDownEmoji, customReactions }: CurrentBookCardProps) {
+  const liveStats = useBookStats(book?.id ?? 0, {
+    reacts: book?.reacts ?? [],
+    up_count: book?.up_count ?? 0,
+    down_count: book?.down_count ?? 0,
+    user_thumb: book?.user_thumb ?? null,
+  });
 
   if (!book) {
     return (
@@ -78,9 +85,9 @@ export function CurrentBookCard({ book, emojis, thumbsUpEmoji, thumbsDownEmoji, 
             )}
             <BookThumbs
               bookId={book.id}
-              upCount={book.up_count}
-              downCount={book.down_count}
-              userThumb={book.user_thumb}
+              upCount={liveStats.up_count}
+              downCount={liveStats.down_count}
+              userThumb={liveStats.user_thumb}
               locked={false}
               upEmoji={thumbsUpEmoji}
               downEmoji={thumbsDownEmoji}
@@ -133,7 +140,7 @@ export function CurrentBookCard({ book, emojis, thumbsUpEmoji, thumbsDownEmoji, 
         <div className="px-6 pb-6 pt-3 border-t border-gray-50">
           <BookReacts
             bookId={book.id}
-            reacts={book.reacts}
+            reacts={liveStats.reacts}
             locked={false}
             emojis={emojis}
             customReactions={customReactions}

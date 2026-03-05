@@ -3,6 +3,7 @@
 import { db } from '@/lib/db/client';
 import { getSession } from '@/lib/auth/session';
 import { revalidatePath } from 'next/cache';
+import { notifyBookStatsChanged } from '@/lib/events/book-stats-emitter';
 
 export type BookReact = {
   emoji: string;
@@ -31,7 +32,7 @@ export type BookWithStats = {
   reacts: BookReact[];
 };
 
-async function getBookStats(bookId: number, userId: number | null) {
+export async function getBookStats(bookId: number, userId: number | null) {
   const thumbRows = await db
     .selectFrom('book_thumbs')
     .select(['value', db.fn.count<number>('user_id').as('cnt')])
@@ -177,6 +178,7 @@ export async function thumbBook(bookId: number, value: 1 | -1): Promise<void> {
       .execute();
   }
 
+  notifyBookStatsChanged(bookId);
   revalidatePath('/');
 }
 
@@ -218,5 +220,6 @@ export async function reactBook(bookId: number, emoji: string): Promise<void> {
       .execute();
   }
 
+  notifyBookStatsChanged(bookId);
   revalidatePath('/');
 }

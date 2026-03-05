@@ -20,6 +20,7 @@ export function BookThumbs({ bookId, upCount, downCount, userThumb, locked, upEm
     if (locked) return;
     startTransition(async () => {
       await thumbBook(bookId, value);
+      window.dispatchEvent(new CustomEvent('book-stats-changed'));
     });
   }
 

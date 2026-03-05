@@ -41,6 +41,7 @@ export function BookReacts({ bookId, reacts, locked, emojis, customReactions }: 
     if (locked) return;
     startTransition(async () => {
       await reactBook(bookId, emoji);
+      window.dispatchEvent(new CustomEvent('book-stats-changed'));
     });
   }
 
