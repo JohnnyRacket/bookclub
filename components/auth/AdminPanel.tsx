@@ -1,6 +1,7 @@
 'use client';
 
 import { useTransition, useState } from 'react';
+import Link from 'next/link';
 import { deleteUserSessions, resetUserPin, type MemberRow } from '@/lib/actions/admin';
 import { setCurrentBook, deleteSubmittedBook, type SubmittedBookRow } from '@/lib/actions/admin-books';
 import { Button } from '@/components/ui/button';
@@ -168,7 +169,15 @@ export function AdminPanel({ members, submittedBooks }: { members: MemberRow[]; 
   return (
     <div className="w-full max-w-xl animate-page-in">
       {/* Header */}
-      <div className="mb-6 text-center stagger">
+      <div className="mb-6 stagger">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors mb-3"
+          style={{ fontFamily: 'var(--font-nunito)' }}
+        >
+          ← Home
+        </Link>
+        <div className="text-center">
         <p
           className="text-xs font-bold uppercase tracking-widest mb-1"
           style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-nunito)' }}
@@ -184,6 +193,7 @@ export function AdminPanel({ members, submittedBooks }: { members: MemberRow[]; 
         <p className="mt-1 text-sm text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>
           {members.length} member{members.length !== 1 ? 's' : ''} in the club
         </p>
+        </div>
       </div>
 
       {/* Member list — each row is its own floating card */}

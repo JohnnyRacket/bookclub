@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useState } from 'react';
 import { joinClub, type JoinState } from '@/lib/actions/join';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,8 @@ interface JoinFormProps {
 
 export function JoinForm({ clubName }: JoinFormProps) {
   const [state, action, pending] = useActionState(joinClub, null);
+  const [pinStep, setPinStep] = useState<'pin' | 'confirm'>('pin');
+  const [pinValue, setPinValue] = useState('');
 
   const isExistingUser = state !== null && 'needsPin' in state;
   const isNewUser = state !== null && 'newUser' in state;
@@ -23,7 +25,7 @@ export function JoinForm({ clubName }: JoinFormProps) {
   const subtext = isExistingUser
     ? `Good to see you, ${lockedName}`
     : isNewUser
-    ? 'Choose a 4–6 digit PIN'
+    ? pinStep === 'pin' ? 'Choose a 4–6 digit PIN' : 'Confirm your PIN'
     : 'Enter your name to get started';
 
   const buttonLabel = pending
@@ -106,13 +108,24 @@ export function JoinForm({ clubName }: JoinFormProps) {
           )}
 
           {/* PIN */}
-          {isStep2 && (
+          {isExistingUser && (
             <PinPad name="pin" label="PIN" autoFocus />
           )}
 
-          {/* Confirm PIN */}
-          {isNewUser && (
-            <PinPad name="confirmPin" label="Confirm PIN" />
+          {/* New user: sequential PIN steps */}
+          {isNewUser && pinStep === 'pin' && (
+            <PinPad
+              name="pin"
+              label="New PIN"
+              autoFocus
+              onComplete={(val) => { setPinValue(val); setPinStep('confirm'); }}
+            />
+          )}
+          {isNewUser && pinStep === 'confirm' && (
+            <>
+              <input type="hidden" name="pin" value={pinValue} />
+              <PinPad name="confirmPin" label="Confirm PIN" autoFocus />
+            </>
           )}
 
           {/* Error */}
@@ -131,17 +144,31 @@ export function JoinForm({ clubName }: JoinFormProps) {
             </div>
           )}
 
-          <Button
-            type="submit"
-            disabled={pending}
-            className="w-full h-12 rounded-2xl font-semibold text-sm text-white border-0 mt-2
-                       bg-[var(--color-primary)] hover:opacity-90 active:opacity-80
-                       disabled:opacity-50 disabled:cursor-not-allowed
-                       transition-opacity shadow-sm"
-            style={{ fontFamily: 'var(--font-nunito)' }}
-          >
-            {buttonLabel}
-          </Button>
+          {isNewUser && pinStep === 'confirm' && (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setPinStep('pin')}
+              className="w-full h-10 rounded-2xl text-sm font-semibold text-muted-foreground"
+              style={{ fontFamily: 'var(--font-nunito)' }}
+            >
+              ← Back
+            </Button>
+          )}
+
+          {!(isNewUser && pinStep === 'pin') && (
+            <Button
+              type="submit"
+              disabled={pending}
+              className="w-full h-12 rounded-2xl font-semibold text-sm text-white border-0 mt-2
+                         bg-[var(--color-primary)] hover:opacity-90 active:opacity-80
+                         disabled:opacity-50 disabled:cursor-not-allowed
+                         transition-opacity shadow-sm"
+              style={{ fontFamily: 'var(--font-nunito)' }}
+            >
+              {buttonLabel}
+            </Button>
+          )}
 
           {isStep2 && (
             <button

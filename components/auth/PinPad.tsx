@@ -7,16 +7,26 @@ interface PinPadProps {
   maxLength?: number;
   label?: string;
   autoFocus?: boolean;
+  onComplete?: (value: string) => void;
 }
 
-export function PinPad({ name, maxLength = 4, label, autoFocus = false }: PinPadProps) {
+export function PinPad({ name, maxLength = 4, label, autoFocus = false, onComplete }: PinPadProps) {
   const [value, setValue] = useState('');
   const [flashKey, setFlashKey] = useState<string | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
 
   // Keep a stable ref to handlers so the document listener never goes stale
   const append = (digit: string) => {
-    setValue(prev => prev.length < maxLength ? prev + digit : prev);
+    setValue(prev => {
+      if (prev.length >= maxLength) return prev;
+      const next = prev + digit;
+      if (next.length === maxLength) {
+        setTimeout(() => onCompleteRef.current?.(next), 0);
+      }
+      return next;
+    });
     setFlashKey(digit);
     setTimeout(() => setFlashKey(null), 150);
   };
