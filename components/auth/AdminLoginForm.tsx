@@ -43,7 +43,7 @@ export function AdminLoginForm() {
           <Button
             type="submit"
             disabled={pending}
-            className="w-full h-12 rounded-2xl font-semibold text-sm text-white border-0
+            className="w-full h-12 rounded-2xl font-semibold text-sm text-white border-0 mt-2
                        bg-[var(--color-primary)] hover:opacity-90 active:opacity-80
                        disabled:opacity-50 disabled:cursor-not-allowed
                        transition-opacity shadow-sm"

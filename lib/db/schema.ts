@@ -16,11 +16,57 @@ export interface SessionsTable {
   last_seen: ColumnType<number, number | undefined, number>;
 }
 
+export interface BooksTable {
+  id: Generated<number>;
+  status: string; // 'current' | 'past' | 'submitted'
+  title: string;
+  author: string;
+  cover_url: string | null;
+  pages: number | null;
+  year: number | null;
+  genres: string | null; // JSON array string e.g. '["Fiction"]'
+  ol_key: string | null;
+  submitted_by: number | null;
+  created_at: Generated<number>;
+  archived_at: number | null;
+}
+
+export interface BookThumbsTable {
+  book_id: number;
+  user_id: number;
+  value: number; // 1 or -1
+  created_at: number;
+}
+
+export interface BookReactsTable {
+  book_id: number;
+  user_id: number;
+  emoji: string;
+  created_at: number;
+}
+
+export interface OlCacheTable {
+  cache_key: string;
+  data: string; // JSON
+  cached_at: number;
+}
+
+export interface ClubSettingsTable {
+  key: string;
+  value: string;
+}
+
 export interface DB {
   users: UsersTable;
   sessions: SessionsTable;
+  books: BooksTable;
+  book_thumbs: BookThumbsTable;
+  book_reacts: BookReactsTable;
+  ol_cache: OlCacheTable;
+  club_settings: ClubSettingsTable;
 }
 
 export type User = Selectable<UsersTable>;
 export type NewUser = Insertable<UsersTable>;
 export type Session = Selectable<SessionsTable>;
+export type Book = Selectable<BooksTable>;

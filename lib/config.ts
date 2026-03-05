@@ -9,4 +9,6 @@ export const clubConfig = {
   name: process.env.CLUB_NAME ?? 'Book Club',
   primaryColor,
   logoUrl: process.env.LOGO_URL ?? null,
+  reactPresets: (process.env.REACT_PRESETS ?? '❤️,😂,😢,🔥,👏,🤔,😴').split(',').map(e => e.trim()).filter(Boolean),
+  maxSubmissionsPerMember: parseInt(process.env.MAX_SUBMISSIONS_PER_MEMBER ?? '1', 10),
 };
