@@ -16,63 +16,70 @@ export function EnterForm({ clubName, logoUrl }: EnterFormProps) {
   const [state, action, pending] = useActionState(enterClub, null);
 
   return (
-    <div className="w-full max-w-sm animate-page-in">
-      {/* Logo + Club Name */}
-      <div className="mb-10 text-center stagger">
-        {logoUrl && (
-          <div className="mb-5 flex justify-center">
-            <div className="relative h-14 w-14 overflow-hidden rounded-2xl ring-1 ring-[oklch(0.88_0.018_75)]">
+    <div className="w-full max-w-xs animate-page-in">
+      {/* Above-card header */}
+      <div className="mb-6 stagger">
+        {logoUrl ? (
+          <div className="mb-4 flex justify-center">
+            <div className="relative h-14 w-14 overflow-hidden rounded-2xl shadow-sm">
               <Image src={logoUrl} alt={clubName} fill className="object-contain" />
             </div>
           </div>
-        )}
-        <div className="flex items-center justify-center gap-3 mb-1">
-          <span className="block h-px flex-1 bg-[oklch(0.88_0.018_75)]" />
-          <span
-            className="text-xs tracking-[0.25em] uppercase"
-            style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-geist-sans)' }}
+        ) : (
+          <div
+            className="mb-4 mx-auto h-14 w-14 rounded-2xl flex items-center justify-center text-white text-xl font-bold shadow-sm"
+            style={{ background: 'var(--color-primary)', fontFamily: 'var(--font-fredoka)' }}
           >
-            Welcome
-          </span>
-          <span className="block h-px flex-1 bg-[oklch(0.88_0.018_75)]" />
-        </div>
+            {clubName.charAt(0).toUpperCase()}
+          </div>
+        )}
         <h1
-          className="text-4xl font-light leading-tight tracking-wide text-foreground/90 mt-3"
-          style={{ fontFamily: 'var(--font-cormorant)' }}
+          className="text-3xl font-semibold text-foreground text-center"
+          style={{ fontFamily: 'var(--font-fredoka)' }}
         >
           {clubName}
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Enter the club password to continue
+        <p
+          className="mt-1 text-sm text-muted-foreground text-center"
+          style={{ fontFamily: 'var(--font-nunito)' }}
+        >
+          Enter the password to continue
         </p>
       </div>
 
-      {/* Form */}
-      <form action={action} className="stagger">
-        <div className="rounded-3xl bg-card border border-border shadow-[0_2px_20px_oklch(0.18_0.018_65/0.06)] p-8 space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="password" className="text-sm font-medium text-foreground/80">
+      {/* Floating card */}
+      <form action={action}>
+        <div className="bg-white rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.10)] p-7 space-y-4 stagger">
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="password"
+              className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+              style={{ fontFamily: 'var(--font-nunito)' }}
+            >
               Password
             </Label>
             <Input
               id="password"
               name="password"
               type="password"
-              placeholder="Club password"
+              placeholder="Enter password"
               autoComplete="current-password"
               autoFocus
               required
-              className="rounded-2xl border-border bg-background h-11 px-4 text-sm
-                         placeholder:text-muted-foreground/50
-                         focus-visible:ring-1 focus-visible:ring-offset-0
-                         focus-visible:ring-[var(--color-primary)]/40
-                         focus-visible:border-[var(--color-primary)]/40
-                         transition-colors"
+              className="rounded-2xl bg-[oklch(0.97_0.008_250)] border-transparent h-12 px-4 text-sm
+                         placeholder:text-muted-foreground/40
+                         focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]/30
+                         focus-visible:border-transparent focus-visible:ring-offset-0
+                         transition-shadow"
+              style={{ fontFamily: 'var(--font-nunito)' }}
             />
           </div>
 
           {state && 'error' in state && (
-            <p className="text-sm text-destructive text-center -mt-2">
+            <p
+              className="text-sm text-destructive text-center font-semibold"
+              style={{ fontFamily: 'var(--font-nunito)' }}
+            >
               {state.error}
             </p>
           )}
@@ -80,19 +87,16 @@ export function EnterForm({ clubName, logoUrl }: EnterFormProps) {
           <Button
             type="submit"
             disabled={pending}
-            className="w-full h-11 rounded-2xl font-medium text-sm transition-all
-                       bg-[var(--color-primary)] hover:opacity-90 text-white
-                       disabled:opacity-50"
+            className="w-full h-12 rounded-2xl font-semibold text-sm text-white border-0
+                       bg-[var(--color-primary)] hover:opacity-90 active:opacity-80
+                       disabled:opacity-50 disabled:cursor-not-allowed
+                       transition-opacity shadow-sm"
+            style={{ fontFamily: 'var(--font-nunito)' }}
           >
-            {pending ? 'Checking…' : 'Enter'}
+            {pending ? 'Checking…' : 'Continue'}
           </Button>
         </div>
       </form>
-
-      {/* Decorative footer mark */}
-      <p className="mt-8 text-center text-xs text-muted-foreground/40 tracking-widest select-none">
-        ✦
-      </p>
     </div>
   );
 }

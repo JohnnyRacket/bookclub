@@ -1,10 +1,11 @@
 'use client';
 
-import { useActionState, useEffect, useRef } from 'react';
+import { useActionState } from 'react';
 import { joinClub, type JoinState } from '@/lib/actions/join';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PinPad } from '@/components/auth/PinPad';
 
 interface JoinFormProps {
   clubName: string;
@@ -12,22 +13,17 @@ interface JoinFormProps {
 
 export function JoinForm({ clubName }: JoinFormProps) {
   const [state, action, pending] = useActionState(joinClub, null);
-  const pinRef = useRef<HTMLInputElement>(null);
 
   const isExistingUser = state !== null && 'needsPin' in state;
   const isNewUser = state !== null && 'newUser' in state;
   const isStep2 = isExistingUser || isNewUser;
   const lockedName = isStep2 ? (state as { name: string }).name : '';
 
-  useEffect(() => {
-    if (isStep2) pinRef.current?.focus();
-  }, [isStep2]);
-
-  const heading = isExistingUser ? 'Welcome back' : isNewUser ? 'Set your PIN' : 'Join the club';
+  const heading = isExistingUser ? 'Welcome back' : isNewUser ? 'Create your PIN' : 'Who are you?';
   const subtext = isExistingUser
-    ? `Enter your PIN to sign in as ${lockedName}`
+    ? `Good to see you, ${lockedName}`
     : isNewUser
-    ? 'Choose a 4–6 digit PIN to secure your account'
+    ? 'Choose a 4–6 digit PIN'
     : 'Enter your name to get started';
 
   const buttonLabel = pending
@@ -39,43 +35,57 @@ export function JoinForm({ clubName }: JoinFormProps) {
     : 'Continue';
 
   return (
-    <div className="w-full max-w-sm animate-page-in">
-      {/* Header */}
-      <div className="mb-10 text-center stagger">
-        <div className="flex items-center justify-center gap-3 mb-1">
-          <span className="block h-px flex-1 bg-[oklch(0.88_0.018_75)]" />
-          <span
-            className="text-xs tracking-[0.25em] uppercase"
-            style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-geist-sans)' }}
-          >
-            {clubName}
-          </span>
-          <span className="block h-px flex-1 bg-[oklch(0.88_0.018_75)]" />
-        </div>
+    <div className="w-full max-w-xs animate-page-in">
+      {/* Above-card header */}
+      <div className="mb-6 text-center stagger">
+        <p
+          className="text-xs font-bold uppercase tracking-widest mb-1"
+          style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-nunito)' }}
+        >
+          {clubName}
+        </p>
         <h1
-          className="text-4xl font-light leading-tight tracking-wide text-foreground/90 mt-3"
-          style={{ fontFamily: 'var(--font-cormorant)' }}
+          className="text-3xl font-semibold text-foreground"
+          style={{ fontFamily: 'var(--font-fredoka)' }}
         >
           {heading}
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">{subtext}</p>
+        <p className="mt-1 text-sm text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>
+          {subtext}
+        </p>
       </div>
 
-      <form action={action} className="stagger">
-        <div className="rounded-3xl bg-card border border-border shadow-[0_2px_20px_oklch(0.18_0.018_65/0.06)] p-8 space-y-5">
+      <form action={action}>
+        <div className="bg-white rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.10)] p-7 space-y-4 stagger">
 
-          {/* Step 1: name input / Step 2: locked name chip */}
+          {/* Step 1: name / Step 2: name pill */}
           {isStep2 ? (
             <>
               <input type="hidden" name="name" value={lockedName} />
-              <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-muted border border-border">
-                <span className="text-xs text-muted-foreground">Signing in as</span>
-                <span className="text-sm font-medium text-foreground">{lockedName}</span>
+              <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-[oklch(0.97_0.008_250)]">
+                <div
+                  className="h-7 w-7 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
+                  style={{ background: 'var(--color-primary)', fontFamily: 'var(--font-fredoka)' }}
+                >
+                  {lockedName.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <p className="text-[11px] text-muted-foreground leading-none mb-0.5" style={{ fontFamily: 'var(--font-nunito)' }}>
+                    Signing in as
+                  </p>
+                  <p className="text-sm font-semibold text-foreground leading-none" style={{ fontFamily: 'var(--font-fredoka)' }}>
+                    {lockedName}
+                  </p>
+                </div>
               </div>
             </>
           ) : (
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-sm font-medium text-foreground/80">
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="name"
+                className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                style={{ fontFamily: 'var(--font-nunito)' }}
+              >
                 Your name
               </Label>
               <Input
@@ -86,75 +96,34 @@ export function JoinForm({ clubName }: JoinFormProps) {
                 autoComplete="nickname"
                 autoFocus
                 required
-                className="rounded-2xl border-border bg-background h-11 px-4 text-sm
-                           placeholder:text-muted-foreground/50
-                           focus-visible:ring-1 focus-visible:ring-offset-0
-                           focus-visible:ring-[var(--color-primary)]/40
-                           focus-visible:border-[var(--color-primary)]/40"
+                className="rounded-2xl bg-[oklch(0.97_0.008_250)] border-transparent h-12 px-4 text-sm
+                           placeholder:text-muted-foreground/40
+                           focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]/30
+                           focus-visible:border-transparent focus-visible:ring-offset-0"
+                style={{ fontFamily: 'var(--font-nunito)' }}
               />
             </div>
           )}
 
-          {/* PIN — shown in step 2 only */}
+          {/* PIN */}
           {isStep2 && (
-            <div className="space-y-2">
-              <Label htmlFor="pin" className="text-sm font-medium text-foreground/80">
-                PIN
-              </Label>
-              <Input
-                ref={pinRef}
-                id="pin"
-                name="pin"
-                type="password"
-                inputMode="numeric"
-                pattern="\d{4,6}"
-                maxLength={6}
-                placeholder="••••"
-                autoComplete={isNewUser ? 'new-password' : 'current-password'}
-                required
-                className="rounded-2xl border-border bg-background h-11 px-4 text-sm tracking-[0.5em]
-                           placeholder:tracking-[0.2em]
-                           focus-visible:ring-1 focus-visible:ring-offset-0
-                           focus-visible:ring-[var(--color-primary)]/40
-                           focus-visible:border-[var(--color-primary)]/40"
-              />
-            </div>
+            <PinPad name="pin" label="PIN" autoFocus />
           )}
 
-          {/* Confirm PIN — new users only */}
+          {/* Confirm PIN */}
           {isNewUser && (
-            <div className="space-y-2">
-              <Label htmlFor="confirmPin" className="text-sm font-medium text-foreground/80">
-                Confirm PIN
-              </Label>
-              <Input
-                id="confirmPin"
-                name="confirmPin"
-                type="password"
-                inputMode="numeric"
-                pattern="\d{4,6}"
-                maxLength={6}
-                placeholder="••••"
-                autoComplete="new-password"
-                required
-                className="rounded-2xl border-border bg-background h-11 px-4 text-sm tracking-[0.5em]
-                           placeholder:tracking-[0.2em]
-                           focus-visible:ring-1 focus-visible:ring-offset-0
-                           focus-visible:ring-[var(--color-primary)]/40
-                           focus-visible:border-[var(--color-primary)]/40"
-              />
-            </div>
+            <PinPad name="confirmPin" label="Confirm PIN" />
           )}
 
           {/* Error */}
           {state && 'error' in state && (
-            <div className="rounded-2xl bg-destructive/8 border border-destructive/20 px-4 py-3">
-              <p className="text-sm text-destructive text-center">
+            <div className="rounded-2xl bg-destructive/8 border border-destructive/15 px-4 py-3">
+              <p className="text-sm text-destructive text-center font-semibold" style={{ fontFamily: 'var(--font-nunito)' }}>
                 {(state as { error: string }).error}
               </p>
               {'attemptsLeft' in state &&
                 typeof (state as { attemptsLeft?: number }).attemptsLeft === 'number' && (
-                  <p className="text-xs text-destructive/70 text-center mt-1">
+                  <p className="text-xs text-destructive/70 text-center mt-1" style={{ fontFamily: 'var(--font-nunito)' }}>
                     {(state as { attemptsLeft: number }).attemptsLeft} attempt
                     {(state as { attemptsLeft: number }).attemptsLeft !== 1 ? 's' : ''} remaining
                   </p>
@@ -165,9 +134,11 @@ export function JoinForm({ clubName }: JoinFormProps) {
           <Button
             type="submit"
             disabled={pending}
-            className="w-full h-11 rounded-2xl font-medium text-sm transition-all
-                       bg-[var(--color-primary)] hover:opacity-90 text-white
-                       disabled:opacity-50"
+            className="w-full h-12 rounded-2xl font-semibold text-sm text-white border-0
+                       bg-[var(--color-primary)] hover:opacity-90 active:opacity-80
+                       disabled:opacity-50 disabled:cursor-not-allowed
+                       transition-opacity shadow-sm"
+            style={{ fontFamily: 'var(--font-nunito)' }}
           >
             {buttonLabel}
           </Button>
@@ -177,16 +148,13 @@ export function JoinForm({ clubName }: JoinFormProps) {
               type="button"
               onClick={() => window.location.reload()}
               className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
+              style={{ fontFamily: 'var(--font-nunito)' }}
             >
               Not {lockedName}? Go back
             </button>
           )}
         </div>
       </form>
-
-      <p className="mt-8 text-center text-xs text-muted-foreground/40 tracking-widest select-none">
-        ✦
-      </p>
     </div>
   );
 }

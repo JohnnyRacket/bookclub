@@ -1,23 +1,18 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono, Cormorant } from 'next/font/google';
+import { Fredoka, Nunito } from 'next/font/google';
 import { clubConfig } from '@/lib/config';
 import './globals.css';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+const fredoka = Fredoka({
+  variable: '--font-fredoka',
   subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
 });
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
+const nunito = Nunito({
+  variable: '--font-nunito',
   subsets: ['latin'],
-});
-
-const cormorant = Cormorant({
-  variable: '--font-cormorant',
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600'],
-  style: ['normal', 'italic'],
+  weight: ['400', '500', '600', '700'],
 });
 
 export const metadata: Metadata = {
@@ -31,8 +26,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable} antialiased`}
-        style={{ '--color-primary': clubConfig.primaryColor } as React.CSSProperties}
+        className={`${fredoka.variable} ${nunito.variable} antialiased`}
+        style={{ '--color-primary': clubConfig.primaryColor, '--primary': clubConfig.primaryColor } as React.CSSProperties}
       >
         {children}
       </body>

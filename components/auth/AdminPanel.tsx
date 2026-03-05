@@ -11,6 +11,22 @@ function formatDate(unixSec: number) {
   });
 }
 
+// Distinct soft colors for member avatars
+const AVATAR_COLORS = [
+  'oklch(0.75 0.14 250)',
+  'oklch(0.72 0.14 330)',
+  'oklch(0.72 0.14 160)',
+  'oklch(0.75 0.14 50)',
+  'oklch(0.72 0.14 290)',
+  'oklch(0.75 0.14 200)',
+];
+
+function getAvatarColor(name: string) {
+  let hash = 0;
+  for (const ch of name) hash = (hash * 31 + ch.charCodeAt(0)) & 0xffffffff;
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
+
 function MemberActions({ member }: { member: MemberRow }) {
   const [isPending, startTransition] = useTransition();
 
@@ -32,18 +48,22 @@ function MemberActions({ member }: { member: MemberRow }) {
       <button
         onClick={handleLogout}
         disabled={isPending || member.sessionCount === 0}
-        className="px-3 py-1.5 text-xs rounded-xl border border-border bg-background
-                   text-muted-foreground hover:text-foreground hover:bg-muted
+        className="px-3 py-1.5 text-xs font-semibold rounded-xl
+                   bg-[oklch(0.96_0.008_250)] text-muted-foreground
+                   hover:text-foreground
                    disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        style={{ fontFamily: 'var(--font-nunito)' }}
       >
         Sign out
       </button>
       <button
         onClick={handleResetPin}
         disabled={isPending}
-        className="px-3 py-1.5 text-xs rounded-xl border border-destructive/30 bg-background
-                   text-destructive/70 hover:text-destructive hover:bg-destructive/5
+        className="px-3 py-1.5 text-xs font-semibold rounded-xl
+                   bg-destructive/8 text-destructive/70
+                   hover:bg-destructive/12 hover:text-destructive
                    disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        style={{ fontFamily: 'var(--font-nunito)' }}
       >
         Reset PIN
       </button>
@@ -53,72 +73,80 @@ function MemberActions({ member }: { member: MemberRow }) {
 
 export function AdminPanel({ members }: { members: MemberRow[] }) {
   return (
-    <div className="w-full max-w-2xl animate-page-in">
+    <div className="w-full max-w-xl animate-page-in">
       {/* Header */}
-      <div className="mb-8 stagger">
-        <div className="flex items-center gap-3 mb-1">
-          <span className="block h-px flex-1 bg-[oklch(0.88_0.018_75)]" />
-          <span
-            className="text-xs tracking-[0.25em] uppercase"
-            style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-geist-sans)' }}
-          >
-            Admin
-          </span>
-          <span className="block h-px flex-1 bg-[oklch(0.88_0.018_75)]" />
-        </div>
+      <div className="mb-6 text-center stagger">
+        <p
+          className="text-xs font-bold uppercase tracking-widest mb-1"
+          style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-nunito)' }}
+        >
+          Admin
+        </p>
         <h1
-          className="text-4xl font-light leading-tight tracking-wide text-foreground/90 mt-3 text-center"
-          style={{ fontFamily: 'var(--font-cormorant)' }}
+          className="text-3xl font-semibold text-foreground"
+          style={{ fontFamily: 'var(--font-fredoka)' }}
         >
           Members
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground text-center">
+        <p className="mt-1 text-sm text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>
           {members.length} member{members.length !== 1 ? 's' : ''} in the club
         </p>
       </div>
 
-      {/* Member list */}
-      <div className="rounded-3xl bg-card border border-border shadow-[0_2px_20px_oklch(0.18_0.018_65/0.06)] overflow-hidden stagger">
+      {/* Member list — each row is its own floating card */}
+      <div className="space-y-3 stagger">
         {members.length === 0 ? (
-          <div className="p-12 text-center text-muted-foreground text-sm">
+          <div className="bg-white rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.08)] p-10 text-center text-sm text-muted-foreground"
+            style={{ fontFamily: 'var(--font-nunito)' }}>
             No members yet.
           </div>
         ) : (
-          <ul className="divide-y divide-border">
-            {members.map((member) => (
-              <li
-                key={member.id}
-                className="flex items-center justify-between gap-4 px-6 py-4 hover:bg-muted/40 transition-colors"
+          members.map((member) => (
+            <div
+              key={member.id}
+              className="bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.07)] px-5 py-4 flex items-center gap-4"
+            >
+              {/* Avatar */}
+              <div
+                className="h-10 w-10 rounded-2xl flex-shrink-0 flex items-center justify-center text-white text-sm font-bold"
+                style={{ background: getAvatarColor(member.name), fontFamily: 'var(--font-fredoka)' }}
               >
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-foreground truncate">
-                      {member.name}
+                {member.name.charAt(0).toUpperCase()}
+              </div>
+
+              {/* Info */}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span
+                    className="text-sm font-semibold text-foreground truncate"
+                    style={{ fontFamily: 'var(--font-fredoka)' }}
+                  >
+                    {member.name}
+                  </span>
+                  {member.pin_reset === 1 && (
+                    <span
+                      className="flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-700"
+                      style={{ fontFamily: 'var(--font-nunito)' }}
+                    >
+                      PIN reset
                     </span>
-                    {member.pin_reset === 1 && (
-                      <span className="flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-100 text-amber-700 border border-amber-200">
-                        PIN reset
-                      </span>
-                    )}
-                  </div>
-                  <div className="mt-0.5 flex items-center gap-3 text-xs text-muted-foreground">
-                    <span>Joined {formatDate(member.created_at)}</span>
-                    <span>·</span>
-                    <span>
-                      {member.sessionCount} session{member.sessionCount !== 1 ? 's' : ''}
-                    </span>
-                  </div>
+                  )}
                 </div>
-                <MemberActions member={member} />
-              </li>
-            ))}
-          </ul>
+                <div
+                  className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5"
+                  style={{ fontFamily: 'var(--font-nunito)' }}
+                >
+                  <span>Joined {formatDate(member.created_at)}</span>
+                  <span>·</span>
+                  <span>{member.sessionCount} session{member.sessionCount !== 1 ? 's' : ''}</span>
+                </div>
+              </div>
+
+              <MemberActions member={member} />
+            </div>
+          ))
         )}
       </div>
-
-      <p className="mt-8 text-center text-xs text-muted-foreground/40 tracking-widest select-none">
-        ✦
-      </p>
     </div>
   );
 }

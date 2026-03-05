@@ -10,33 +10,34 @@ export default async function HomePage() {
     <div
       className="min-h-screen flex items-center justify-center px-4"
       style={{
-        background: `
-          radial-gradient(ellipse 80% 60% at 50% -10%, oklch(0.93 0.025 75 / 0.5) 0%, transparent 70%),
-          oklch(0.975 0.012 75)
-        `,
+        background: 'color-mix(in oklch, var(--color-primary) 12%, white)',
       }}
     >
-      <div className="text-center max-w-sm animate-page-in stagger">
-        <div className="flex items-center justify-center gap-3 mb-4">
-          <span className="block h-px flex-1 bg-[oklch(0.88_0.018_75)]" />
-          <span
-            className="text-xs tracking-[0.25em] uppercase"
-            style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-geist-sans)' }}
-          >
-            {clubConfig.name}
-          </span>
-          <span className="block h-px flex-1 bg-[oklch(0.88_0.018_75)]" />
-        </div>
-        <h1
-          className="text-5xl font-light text-foreground/90 mb-4"
-          style={{ fontFamily: 'var(--font-cormorant)' }}
+      <div className="text-center max-w-xs animate-page-in stagger">
+        <p
+          className="text-xs font-bold uppercase tracking-widest mb-3"
+          style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-nunito)' }}
         >
-          Hello, {session.name}
-        </h1>
-        <p className="text-muted-foreground text-sm">
-          More features coming soon.
+          {clubConfig.name}
         </p>
-        <p className="mt-12 text-xs text-muted-foreground/40 tracking-widest">✦</p>
+
+        <div className="bg-white rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.10)] p-8">
+          <div
+            className="mx-auto mb-4 h-14 w-14 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-sm"
+            style={{ background: 'var(--color-primary)', fontFamily: 'var(--font-fredoka)' }}
+          >
+            {session.name.charAt(0).toUpperCase()}
+          </div>
+          <h1
+            className="text-3xl font-semibold text-foreground"
+            style={{ fontFamily: 'var(--font-fredoka)' }}
+          >
+            Hello, {session.name}
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>
+            More features coming soon.
+          </p>
+        </div>
       </div>
     </div>
   );
