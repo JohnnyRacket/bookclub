@@ -358,6 +358,9 @@ function ClubSettingsEditor({ settings }: { settings: ClubConfig }) {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [colorHex, setColorHex] = useState(settings.primaryColor);
   const [reactPreviewRaw, setReactPreviewRaw] = useState(settings.reactPresets.join(','));
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [logoRemoved, setLogoRemoved] = useState(false);
+  const logoPreviewUrlRef = useRef<string | null>(null);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -428,18 +431,47 @@ function ClubSettingsEditor({ settings }: { settings: ClubConfig }) {
           </div>
         </div>
 
-        {/* Logo URL */}
+        {/* Logo Upload */}
         <div>
           <label className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide" style={{ fontFamily: 'var(--font-nunito)' }}>
-            Logo URL <span className="font-normal normal-case">(optional)</span>
+            Logo <span className="font-normal normal-case">(optional)</span>
           </label>
+          {/* Hidden remove flag */}
+          <input type="hidden" name="logo_remove" value={logoRemoved ? '1' : '0'} />
+          {/* Current / preview */}
+          {(() => {
+            const src = logoRemoved ? null : (logoPreview ?? settings.logoUrl);
+            return src ? (
+              <div className="flex items-center gap-3 mb-2">
+                <img src={src} alt="Logo preview" className="h-12 w-12 object-contain rounded-lg border border-gray-200" />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (logoPreviewUrlRef.current) { URL.revokeObjectURL(logoPreviewUrlRef.current); logoPreviewUrlRef.current = null; }
+                    setLogoPreview(null);
+                    setLogoRemoved(true);
+                  }}
+                  className="text-xs text-red-500 hover:text-red-700 font-semibold"
+                  style={{ fontFamily: 'var(--font-nunito)' }}
+                >
+                  Remove
+                </button>
+              </div>
+            ) : null;
+          })()}
           <input
-            type="text"
-            name="logo_url"
-            defaultValue={settings.logoUrl ?? ''}
-            placeholder="https://…"
-            className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 transition-shadow"
-            style={{ fontFamily: 'var(--font-nunito)' }}
+            type="file"
+            name="logo_file"
+            accept="image/*"
+            onChange={e => {
+              const file = e.target.files?.[0];
+              if (logoPreviewUrlRef.current) URL.revokeObjectURL(logoPreviewUrlRef.current);
+              const url = file ? URL.createObjectURL(file) : null;
+              logoPreviewUrlRef.current = url;
+              setLogoPreview(url);
+              setLogoRemoved(false);
+            }}
+            className="w-full text-sm text-muted-foreground file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
           />
         </div>
 

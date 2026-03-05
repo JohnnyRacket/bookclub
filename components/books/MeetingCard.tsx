@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { MapPin } from 'lucide-react';
 import type { MeetingSettings } from '@/lib/actions/settings';
 
 function formatMeetingDate(unixSec: number) {
@@ -45,7 +46,7 @@ export function MeetingCard({ settings }: { settings: MeetingSettings }) {
           </p>
           {settings.nextMeetingLocation && (
             <p className="text-sm text-muted-foreground mt-1" style={{ fontFamily: 'var(--font-nunito)' }}>
-              📍 {settings.nextMeetingLocation}
+              <MapPin className="inline-block mr-1 -mt-0.5" size={13} />{settings.nextMeetingLocation}
             </p>
           )}
         </div>

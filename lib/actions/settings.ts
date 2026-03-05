@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth/session';
 import { requireAdmin } from '@/lib/actions/admin';
 import { clubConfig } from '@/lib/config';
 import { revalidatePath } from 'next/cache';
+import { saveUploadedCover } from '@/lib/images/covers';
 
 export type MeetingSettings = {
   nextMeetingAt: number | null;
@@ -67,7 +68,7 @@ export async function getClubConfig(): Promise<ClubConfig> {
   return {
     name: map.get('club_name') ?? clubConfig.name,
     primaryColor: map.get('primary_color') ?? clubConfig.primaryColor,
-    logoUrl: map.has('logo_url') ? (map.get('logo_url') || null) : clubConfig.logoUrl,
+    logoUrl: map.has('logo_url') ? (map.get('logo_url') || null) : null,
     reactPresets,
     maxSubmissionsPerMember,
     thumbsUpEmoji: map.get('thumbs_up_emoji') ?? clubConfig.thumbsUpEmoji,
@@ -83,7 +84,6 @@ export async function updateClubConfig(
   const fields: Array<[string, string | null]> = [
     ['club_name', (formData.get('club_name') as string)?.trim() || null],
     ['primary_color', (formData.get('primary_color') as string)?.trim() || null],
-    ['logo_url', (formData.get('logo_url') as string)?.trim() ?? null],
     ['react_presets', (formData.get('react_presets') as string)?.trim() || null],
     ['max_submissions', (formData.get('max_submissions') as string)?.trim() || null],
     ['thumbs_up_emoji', (formData.get('thumbs_up_emoji') as string)?.trim() || null],
@@ -96,6 +96,22 @@ export async function updateClubConfig(
         .insertInto('club_settings')
         .values({ key, value })
         .onConflict(oc => oc.column('key').doUpdateSet({ value }))
+        .execute();
+    }
+  }
+
+  // Logo: file upload, remove, or leave unchanged
+  const logoRemove = formData.get('logo_remove') === '1';
+  const logoFile = formData.get('logo_file');
+  if (logoRemove) {
+    await db.deleteFrom('club_settings').where('key', '=', 'logo_url').execute();
+  } else if (logoFile instanceof File && logoFile.size > 0) {
+    const logoPath = await saveUploadedCover(logoFile);
+    if (logoPath) {
+      await db
+        .insertInto('club_settings')
+        .values({ key: 'logo_url', value: logoPath })
+        .onConflict(oc => oc.column('key').doUpdateSet({ value: logoPath }))
         .execute();
     }
   }

@@ -77,7 +77,9 @@ async function getBookStats(bookId: number, userId: number | null) {
       emoji,
       count: reactors.length,
       userReacted: userId ? reactors.some(u => u.id === userId) : false,
-      users: reactors.map(u => u.name),
+      users: userId
+        ? [...reactors.filter(u => u.id === userId), ...reactors.filter(u => u.id !== userId)].map(u => u.name)
+        : reactors.map(u => u.name),
     };
   });
 

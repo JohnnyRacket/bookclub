@@ -4,6 +4,7 @@ import { getClubConfig } from '@/lib/actions/settings';
 import { getCurrentBook, getPastBooks } from '@/lib/actions/books';
 import { getMySubmissions } from '@/lib/actions/submit';
 import { getMeetingSettings } from '@/lib/actions/settings';
+import Image from 'next/image';
 import { ActionMenu } from '@/components/ActionMenu';
 import { CurrentBookCard } from '@/components/books/CurrentBookCard';
 import { PastBookCard } from '@/components/books/PastBookCard';
@@ -32,16 +33,23 @@ export default async function HomePage() {
       <div className="max-w-5xl mx-auto">
         {/* Top nav */}
         <div className="flex items-center justify-between mb-8">
-          <div>
-            <p
-              className="text-xs font-bold uppercase tracking-widest"
-              style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-nunito)' }}
-            >
-              {clubConfig.name}
-            </p>
-            <p className="text-sm text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>
-              Hi, {session.name}
-            </p>
+          <div className="flex items-center gap-3">
+            {clubConfig.logoUrl && (
+              <div className="relative h-9 w-9 flex-shrink-0">
+                <Image src={clubConfig.logoUrl} alt={clubConfig.name} fill className="object-contain" />
+              </div>
+            )}
+            <div>
+              <p
+                className="text-xs font-bold uppercase tracking-widest"
+                style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-nunito)' }}
+              >
+                {clubConfig.name}
+              </p>
+              <p className="text-sm text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>
+                Hi, {session.name}
+              </p>
+            </div>
           </div>
           <ActionMenu atSubmissionCap={atSubmissionCap} />
         </div>
