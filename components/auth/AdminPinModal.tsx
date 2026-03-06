@@ -9,7 +9,7 @@ interface AdminPinModalProps {
   pinless: boolean;
   title?: string;
   onClose: () => void;
-  onSuccess: () => void | Promise<void>;
+  onSuccess: () => string | null | undefined | void | Promise<string | null | undefined | void>;
 }
 
 export function AdminPinModal({ open, pinless, title = 'Admin Required', onClose, onSuccess }: AdminPinModalProps) {
@@ -29,9 +29,15 @@ export function AdminPinModal({ open, pinless, title = 'Admin Required', onClose
       setResetKey(k => k + 1);
       setLoading(false);
     } else {
-      await onSuccess();
-      onClose();
-      setLoading(false);
+      const err = await onSuccess();
+      if (err) {
+        setError(err);
+        setResetKey(k => k + 1);
+        setLoading(false);
+      } else {
+        onClose();
+        setLoading(false);
+      }
     }
   }
 
@@ -41,8 +47,12 @@ export function AdminPinModal({ open, pinless, title = 'Admin Required', onClose
       if (res.error) {
         setError(res.error);
       } else {
-        await onSuccess();
-        onClose();
+        const err = await onSuccess();
+        if (err) {
+          setError(err);
+        } else {
+          onClose();
+        }
       }
     });
   }

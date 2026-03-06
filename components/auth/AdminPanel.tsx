@@ -461,9 +461,11 @@ function SubmittedBookActions({ book }: { book: SubmittedBookRow }) {
 function VotingSessionManager({
   openSession,
   selectionMode,
+  submittedBookCount,
 }: {
   openSession: SessionSnapshot | null;
   selectionMode: "admin" | "vote" | "random";
+  submittedBookCount: number;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -531,7 +533,8 @@ function VotingSessionManager({
                 </p>
                 <Button
                   onClick={() => setConfirmStartVote(true)}
-                  disabled={isPending}
+                  disabled={isPending || submittedBookCount === 0}
+                  title={submittedBookCount === 0 ? "No books have been submitted yet" : undefined}
                   style={{
                     background: "var(--color-primary)",
                     fontFamily: "var(--font-nunito)",
@@ -639,7 +642,8 @@ function VotingSessionManager({
             </p>
             <Button
               onClick={handleRandomPick}
-              disabled={isPending}
+              disabled={isPending || submittedBookCount === 0}
+              title={submittedBookCount === 0 ? "No books have been submitted yet" : undefined}
               style={{
                 background: "var(--color-primary)",
                 fontFamily: "var(--font-nunito)",
@@ -1286,6 +1290,7 @@ export function AdminPanel({
         <VotingSessionManager
           openSession={openSession}
           selectionMode={clubSettings.selectionMode}
+          submittedBookCount={submittedBooks.length}
         />
 
         {clubSettings.selectionMode !== "admin" && (

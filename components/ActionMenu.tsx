@@ -26,6 +26,8 @@ export function ActionMenu({
   const [open, setOpen] = useState(false);
   const [pinModalOpen, setPinModalOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [voteError, setVoteError] = useState<string | null>(null);
+  const [randomError, setRandomError] = useState<string | null>(null);
   const router = useRouter();
 
   function go(path: string) {
@@ -34,30 +36,38 @@ export function ActionMenu({
   }
 
   async function doStartVote() {
+    setVoteError(null);
     const res = await startVotingSession();
     if (res.error) {
       setVoteError(res.error);
+      return res.error;
     } else if (res.sessionId) {
+      setOpen(false);
       router.push(`/select-book/vote/${res.sessionId}`);
     }
   }
 
   function handleStartVote() {
-    setOpen(false);
+    setVoteError(null);
     if (isAdmin) {
       startTransition(doStartVote);
     } else {
+      setOpen(false);
       setPinModalOpen(true);
     }
   }
 
   function handleRandomPick() {
-    setOpen(false);
+    setRandomError(null);
     startTransition(async () => {
       const res = await startRandomSelection();
-      if (res.redirect) {
+      if (res.error) {
+        setRandomError(res.error);
+      } else if (res.redirect) {
+        setOpen(false);
         router.push(res.redirect);
       } else {
+        setOpen(false);
         router.refresh();
       }
     });
@@ -123,12 +133,24 @@ export function ActionMenu({
           {selectionMode === 'random' && isAdmin && (
             <button
               onClick={handleRandomPick}
-              disabled={isPending}
-              className="w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-white transition-colors hover:bg-white/20 disabled:opacity-50 cursor-pointer"
+              disabled={isPending || submittedBookCount === 0}
+              title={submittedBookCount === 0 ? 'No books have been submitted yet' : undefined}
+              className="w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-white transition-colors hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               style={{ fontFamily: 'var(--font-nunito)' }}
             >
               Pick Random Book
             </button>
+          )}
+
+          {voteError && (
+            <div className="mx-1 mt-1 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700" style={{ fontFamily: 'var(--font-nunito)' }}>
+              {voteError}
+            </div>
+          )}
+          {randomError && (
+            <div className="mx-1 mt-1 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700" style={{ fontFamily: 'var(--font-nunito)' }}>
+              {randomError}
+            </div>
           )}
 
           <button

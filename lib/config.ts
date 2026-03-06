@@ -5,7 +5,7 @@ const primaryColor = rawColor
   ? rawColor.startsWith('#') ? rawColor : `#${rawColor}`
   : '#4f46e5';
 
-const DEFAULT_EMOJI_REACTIONS = '💀,😭,🔥,💯,🫡,🫠,🤌,💅,🥲,🥹,😮‍💨,🫣,😏,🫶,🤯,😈,👀,🙈,❤️,💔,🙃,😇,🤡,🥸,😑,🫥,😵,🤓,🎉,✨,💫,🌟,📚,🧠,🫂,👏,🙌,😂,😍,🥱,😬,⭐,😤,🙄,🫦,🥶';
+const DEFAULT_EMOJI_REACTIONS = '💀,😭,🔥,💯,🫡,🫠,🤌,💅,🥲,🥹,😮‍💨,🫣,😏,🫶,🤯,😈,👀,🙈,❤️,💔,🙃,😇,🤡,🥸,😑,🫥,😵,🤓,🎉,✨,💫,🌟,📚,🧠,🫂,👏,🙌,😂,😍,🥱,😬,⭐,😤,🙄,🫦,🥶,🗑️,😴';
 
 export const clubConfig = {
   name: process.env.CLUB_NAME ?? 'Book Club',
