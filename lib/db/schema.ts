@@ -29,6 +29,7 @@ export interface BooksTable {
   submitted_by: number | null;
   created_at: Generated<number>;
   archived_at: number | null;
+  theme: string | null;
 }
 
 export interface BookThumbsTable {
@@ -64,6 +65,22 @@ export interface CustomReactionsTable {
   created_at: Generated<string>;
 }
 
+export interface BookSelectionSessionsTable {
+  id: Generated<number>;
+  status: string; // 'open' | 'closed' | 'finalized'
+  created_by: number | null;
+  created_at: Generated<number>;
+  closed_at: number | null;
+  finalized_at: number | null;
+}
+
+export interface BookSelectionVotesTable {
+  session_id: number;
+  book_id: number;
+  user_id: number;
+  created_at: Generated<number>;
+}
+
 export interface DB {
   users: UsersTable;
   sessions: SessionsTable;
@@ -73,6 +90,8 @@ export interface DB {
   ol_cache: OlCacheTable;
   club_settings: ClubSettingsTable;
   custom_reactions: CustomReactionsTable;
+  book_selection_sessions: BookSelectionSessionsTable;
+  book_selection_votes: BookSelectionVotesTable;
 }
 
 export type User = Selectable<UsersTable>;

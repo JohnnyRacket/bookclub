@@ -78,6 +78,20 @@ export function PastBookModal({ book, open, onOpenChange, thumbsUpEmoji, thumbsD
                   ))}
                 </div>
               )}
+              {book.theme && (
+                <div className="mt-1.5">
+                  <span
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                    style={{
+                      background: 'color-mix(in oklch, var(--color-primary) 15%, white)',
+                      color: 'color-mix(in oklch, var(--color-primary) 80%, black)',
+                      fontFamily: 'var(--font-nunito)',
+                    }}
+                  >
+                    Theme: {book.theme}
+                  </span>
+                </div>
+              )}
               {book.submitter_name && (
                 <p className="text-xs text-muted-foreground mt-1.5" style={{ fontFamily: 'var(--font-nunito)' }}>
                   Suggested by <span className="font-semibold">{book.submitter_name}</span>

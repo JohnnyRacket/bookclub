@@ -26,6 +26,7 @@ export type BookWithStats = {
   submitter_name: string | null;
   created_at: number;
   archived_at: number | null;
+  theme: string | null;
   up_count: number;
   down_count: number;
   user_thumb: 1 | -1 | null;
@@ -104,9 +105,19 @@ function bookBaseQuery(status: string) {
       'books.submitted_by',
       'books.created_at',
       'books.archived_at',
+      'books.theme',
       'submitter.name as submitter_name',
     ])
     .where('books.status', '=', status);
+}
+
+export async function getSubmittedBookCount(): Promise<number> {
+  const row = await db
+    .selectFrom('books')
+    .select(db.fn.count<number>('id').as('cnt'))
+    .where('status', '=', 'submitted')
+    .executeTakeFirst();
+  return Number(row?.cnt ?? 0);
 }
 
 export async function getCurrentBook(): Promise<BookWithStats | null> {

@@ -42,7 +42,7 @@ export function CountdownCard({ nextMeetingAt }: CountdownCardProps) {
         className="text-xs font-bold uppercase tracking-widest mb-1"
         style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-nunito)' }}
       >
-        {isToday ? 'Meeting' : 'Countdown'}
+        {isToday ? 'Meeting' : 'Book Club In'}
       </p>
       <p
         className="text-3xl font-bold leading-none"
@@ -52,7 +52,7 @@ export function CountdownCard({ nextMeetingAt }: CountdownCardProps) {
       </p>
       {countdown.sub && (
         <p className="text-sm text-muted-foreground mt-1" style={{ fontFamily: 'var(--font-nunito)' }}>
-          {countdown.sub} away
+          {countdown.sub}
         </p>
       )}
     </div>

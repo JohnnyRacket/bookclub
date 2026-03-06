@@ -20,6 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: config.name,
     description: `Welcome to ${config.name}`,
+    icons: config.logoUrl ? { icon: config.logoUrl } : undefined,
   };
 }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   deleteUserSessions,
@@ -19,8 +20,28 @@ import {
   deleteCustomReaction,
   type CustomReaction,
 } from "@/lib/actions/reactions";
+import {
+  startVotingSession,
+  closeVotingSession,
+  startRandomSelection,
+  type SessionSnapshot,
+} from "@/lib/actions/book-selection";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -437,7 +458,219 @@ function SubmittedBookActions({ book }: { book: SubmittedBookRow }) {
   );
 }
 
-function ClubSettingsEditor({ settings }: { settings: ClubConfig }) {
+function VotingSessionManager({
+  openSession,
+  selectionMode,
+}: {
+  openSession: SessionSnapshot | null;
+  selectionMode: "admin" | "vote" | "random";
+}) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [confirmStartVote, setConfirmStartVote] = useState(false);
+
+  if (selectionMode === "admin") return null;
+
+  function handleStartVote() {
+    setMessage(null);
+    setError(null);
+    startTransition(async () => {
+      const res = await startVotingSession();
+      if (res.error) {
+        setError(res.error);
+      } else if (res.sessionId) {
+        router.push(`/select-book/vote/${res.sessionId}`);
+      }
+    });
+  }
+
+  function handleCloseVoting() {
+    if (!openSession) return;
+    setMessage(null);
+    setError(null);
+    startTransition(async () => {
+      const res = await closeVotingSession(openSession.id);
+      if (res.error) {
+        setError(res.error);
+      } else {
+        setMessage("Voting closed. Go to the vote page to finalize.");
+      }
+    });
+  }
+
+  function handleRandomPick() {
+    setMessage(null);
+    setError(null);
+    startTransition(async () => {
+      const res = await startRandomSelection();
+      if (res.error) {
+        setError(res.error);
+      } else if (res.redirect) {
+        router.push(res.redirect);
+      } else {
+        setMessage("Book selected! Check the home page.");
+        router.refresh();
+      }
+    });
+  }
+
+  return (
+    <div className="bg-white rounded-2xl shadow-[var(--shadow-card-sm)] p-5 space-y-4">
+        {selectionMode === "vote" && (
+          <>
+            {!openSession ? (
+              <>
+              <div className="text-center space-y-3">
+                <p
+                  className="text-sm text-muted-foreground"
+                  style={{ fontFamily: "var(--font-nunito)" }}
+                >
+                  No active voting session.
+                </p>
+                <Button
+                  onClick={() => setConfirmStartVote(true)}
+                  disabled={isPending}
+                  style={{
+                    background: "var(--color-primary)",
+                    fontFamily: "var(--font-nunito)",
+                  }}
+                >
+                  Start Voting Session
+                </Button>
+              </div>
+
+              <AlertDialog open={confirmStartVote} onOpenChange={setConfirmStartVote}>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Start a voting session?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      All submitted books will be put up for a vote. Members will be notified and can cast their votes.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => { setConfirmStartVote(false); handleStartVote(); }}
+                      style={{ background: "var(--color-primary)" }}
+                    >
+                      Start Session
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              </>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
+                      style={{
+                        background:
+                          openSession.status === "open"
+                            ? "color-mix(in oklch, var(--color-primary) 15%, white)"
+                            : "#fef3c7",
+                        color:
+                          openSession.status === "open"
+                            ? "var(--color-primary)"
+                            : "#92400e",
+                        fontFamily: "var(--font-nunito)",
+                      }}
+                    >
+                      <span
+                        className="w-1.5 h-1.5 rounded-full"
+                        style={{
+                          background:
+                            openSession.status === "open"
+                              ? "var(--color-primary)"
+                              : "#f59e0b",
+                        }}
+                      />
+                      {openSession.status === "open"
+                        ? "Voting Open"
+                        : "Voting Closed"}
+                    </span>
+                  </div>
+                  <div
+                    className="text-xs text-muted-foreground"
+                    style={{ fontFamily: "var(--font-nunito)" }}
+                  >
+                    {openSession.total_votes_cast} votes ·{" "}
+                    {openSession.total_voters} members
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <Link
+                    href={`/select-book/vote/${openSession.id}`}
+                    className="flex-1 text-center py-2 rounded-xl text-sm font-semibold text-white transition-all"
+                    style={{
+                      background: "var(--color-primary)",
+                      fontFamily: "var(--font-nunito)",
+                    }}
+                  >
+                    Open Vote Page
+                  </Link>
+                  {openSession.status === "open" && (
+                    <Button
+                      variant="outline"
+                      onClick={handleCloseVoting}
+                      disabled={isPending}
+                      style={{ fontFamily: "var(--font-nunito)" }}
+                    >
+                      Close Voting
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {selectionMode === "random" && (
+          <div className="text-center space-y-3">
+            <p
+              className="text-sm text-muted-foreground"
+              style={{ fontFamily: "var(--font-nunito)" }}
+            >
+              Randomly pick from submitted books.
+            </p>
+            <Button
+              onClick={handleRandomPick}
+              disabled={isPending}
+              style={{
+                background: "var(--color-primary)",
+                fontFamily: "var(--font-nunito)",
+              }}
+            >
+              {isPending ? "Picking…" : "Pick Random Book"}
+            </Button>
+          </div>
+        )}
+
+        {error && (
+          <div
+            className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-700"
+            style={{ fontFamily: "var(--font-nunito)" }}
+          >
+            {error}
+          </div>
+        )}
+        {message && (
+          <div
+            className="rounded-xl bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700"
+            style={{ fontFamily: "var(--font-nunito)" }}
+          >
+            {message}
+          </div>
+        )}
+    </div>
+  );
+}
+
+function ClubSettingsEditor({ settings, hasAdminPin }: { settings: ClubConfig; hasAdminPin: boolean }) {
   const [isPending, startTransition] = useTransition();
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -446,6 +679,10 @@ function ClubSettingsEditor({ settings }: { settings: ClubConfig }) {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [logoRemoved, setLogoRemoved] = useState(false);
   const logoPreviewUrlRef = useRef<string | null>(null);
+  const [selectionMode, setSelectionMode] = useState(settings.selectionMode);
+  const [randomReveal, setRandomReveal] = useState(settings.randomReveal);
+  const [purgeAfterSelection, setPurgeAfterSelection] = useState(settings.purgeAfterSelection);
+  const [pinlessAdmin, setPinlessAdmin] = useState(settings.pinlessAdmin);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -668,6 +905,109 @@ function ClubSettingsEditor({ settings }: { settings: ClubConfig }) {
           />
         </div>
 
+        {/* Selection Mode */}
+        <div>
+          <label
+            className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide"
+            style={{ fontFamily: "var(--font-nunito)" }}
+          >
+            Book Selection Mode
+          </label>
+          <Select
+            value={selectionMode}
+            onValueChange={(v) => setSelectionMode(v as typeof selectionMode)}
+            name="selection_mode"
+          >
+            <SelectTrigger className="w-full" style={{ fontFamily: "var(--font-nunito)" }}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="vote">Vote (democratic)</SelectItem>
+              <SelectItem value="admin">Admin picks</SelectItem>
+              <SelectItem value="random">Random pick</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {selectionMode === "vote" && (
+          <>
+            <div>
+              <label
+                className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide"
+                style={{ fontFamily: "var(--font-nunito)" }}
+              >
+                Votes Per Member
+              </label>
+              <input
+                type="number"
+                name="votes_per_member"
+                defaultValue={settings.votesPerMember}
+                min={1}
+                max={10}
+                className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 transition-shadow"
+                style={{ fontFamily: "var(--font-nunito)" }}
+              />
+            </div>
+          </>
+        )}
+
+        {selectionMode === "random" && (
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm text-foreground" style={{ fontFamily: "var(--font-nunito)" }}>
+              Reveal page (wheel animation)
+            </span>
+            <Switch size="lg" checked={randomReveal} onCheckedChange={setRandomReveal} />
+            <input type="hidden" name="random_reveal" value={randomReveal ? "1" : "0"} />
+          </div>
+        )}
+
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm text-foreground" style={{ fontFamily: "var(--font-nunito)" }}>
+              Purge pending submissions after selection
+            </span>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-gray-200 text-gray-500 text-xs font-bold cursor-default select-none">?</span>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-56 text-center">
+                  When enabled, all submitted books that weren&apos;t chosen are deleted after a selection is made — keeping the queue clean for the next round. Disable to carry them forward.
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          <Switch size="lg" checked={purgeAfterSelection} onCheckedChange={setPurgeAfterSelection} />
+          <input type="hidden" name="purge_after_selection" value={purgeAfterSelection ? "1" : "0"} />
+        </div>
+
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm text-foreground" style={{ fontFamily: "var(--font-nunito)" }}>
+                Pinless admin
+              </span>
+              {!hasAdminPin && (
+                <span
+                  className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
+                  style={{
+                    background: 'color-mix(in oklch, var(--color-primary) 12%, white)',
+                    color: 'var(--color-primary)',
+                    fontFamily: 'var(--font-nunito)',
+                  }}
+                >
+                  always on (no PIN set)
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5" style={{ fontFamily: "var(--font-nunito)" }}>
+              Any member can elevate to admin without a PIN
+            </p>
+          </div>
+          <Switch size="lg" checked={pinlessAdmin} onCheckedChange={setPinlessAdmin} />
+          <input type="hidden" name="pinless_admin" value={pinlessAdmin ? "1" : "0"} />
+        </div>
+
         {status === "error" && errorMsg && (
           <div
             className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-700"
@@ -789,12 +1129,16 @@ export function AdminPanel({
   currentBook,
   clubSettings,
   customReactions,
+  openSession,
+  hasAdminPin,
 }: {
   members: MemberRow[];
   submittedBooks: SubmittedBookRow[];
   currentBook: CurrentBookAdmin | null;
   clubSettings: ClubConfig;
   customReactions: CustomReaction[];
+  openSession: SessionSnapshot | null;
+  hasAdminPin: boolean;
 }) {
   return (
     <div className="w-full max-w-xl animate-page-in">
@@ -921,14 +1265,14 @@ export function AdminPanel({
         )}
       </div>
 
-      {/* Submitted Books */}
+      {/* Book Queue */}
       <div className="mt-10 stagger">
         <div className="mb-4 text-center">
           <h2
             className="text-2xl font-semibold text-foreground"
             style={{ fontFamily: "var(--font-fredoka)" }}
           >
-            Submitted Books
+            Book Queue
           </h2>
           <p
             className="mt-1 text-sm text-muted-foreground"
@@ -938,6 +1282,15 @@ export function AdminPanel({
             {submittedBooks.length !== 1 ? "s" : ""}
           </p>
         </div>
+
+        <VotingSessionManager
+          openSession={openSession}
+          selectionMode={clubSettings.selectionMode}
+        />
+
+        {clubSettings.selectionMode !== "admin" && (
+          <div className="my-4 border-t border-border" />
+        )}
 
         <div className="space-y-3">
           {submittedBooks.length === 0 ? (
@@ -998,7 +1351,7 @@ export function AdminPanel({
       </div>
 
       {/* Tools */}
-      <div className="mt-10 stagger">
+      <div className="mt-10 stagger space-y-3">
         <div className="mb-4 text-center">
           <h2
             className="text-2xl font-semibold text-foreground"
@@ -1036,6 +1389,36 @@ export function AdminPanel({
           </div>
           <span className="text-muted-foreground text-sm">→</span>
         </Link>
+
+        <Link
+          href="/admin/override"
+          className="flex items-center gap-4 bg-white rounded-2xl shadow-[var(--shadow-card-sm)] px-5 py-4 hover:shadow-md transition-shadow"
+        >
+          <div
+            className="h-10 w-10 rounded-2xl flex-shrink-0 flex items-center justify-center text-lg"
+            style={{
+              background:
+                "color-mix(in oklch, var(--color-primary) 12%, white)",
+            }}
+          >
+            ⚡
+          </div>
+          <div className="min-w-0 flex-1">
+            <p
+              className="text-sm font-semibold text-foreground"
+              style={{ fontFamily: "var(--font-fredoka)" }}
+            >
+              Override Current Book
+            </p>
+            <p
+              className="text-xs text-muted-foreground"
+              style={{ fontFamily: "var(--font-nunito)" }}
+            >
+              Force-set any book as current, bypassing voting and submission queue
+            </p>
+          </div>
+          <span className="text-muted-foreground text-sm">→</span>
+        </Link>
       </div>
 
       {/* Custom Reactions */}
@@ -1067,7 +1450,7 @@ export function AdminPanel({
             Club Settings
           </h2>
         </div>
-        <ClubSettingsEditor settings={clubSettings} />
+        <ClubSettingsEditor settings={clubSettings} hasAdminPin={hasAdminPin} />
       </div>
     </div>
   );

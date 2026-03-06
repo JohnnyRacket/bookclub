@@ -1,11 +1,12 @@
-import { verifyAdmin } from '@/lib/actions/admin';
+import { isPinlessMode } from '@/lib/actions/admin';
 import { AuthShell } from '@/components/auth/AuthShell';
 import { AdminLoginForm } from '@/components/auth/AdminLoginForm';
 
-export default function AdminLoginPage() {
+export default async function AdminLoginPage() {
+  const pinless = await isPinlessMode();
   return (
     <AuthShell>
-      <AdminLoginForm />
+      <AdminLoginForm pinless={pinless} />
     </AuthShell>
   );
 }

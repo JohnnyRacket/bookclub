@@ -1,19 +1,14 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
-import { BookSearch } from '@/components/submit/BookSearch';
-import { addPastBook } from '@/lib/actions/admin-books';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Button } from '@/components/ui/button';
-import type { OLSearchResult } from '@/lib/openlibrary/client';
 import Link from 'next/link';
+import { BookSearch } from '@/components/submit/BookSearch';
+import { overrideCurrentBook } from '@/lib/actions/admin-books';
+import type { OLSearchResult } from '@/lib/openlibrary/client';
 
 type Step = 'search' | 'form';
 
-export function BackfillBookForm({ users }: { users: { id: number; name: string }[] }) {
+export function OverrideBookForm() {
   const [step, setStep] = useState<Step>('search');
   const [prefill, setPrefill] = useState<OLSearchResult | null>(null);
   const [selectedForSearch, setSelectedForSearch] = useState<OLSearchResult | null>(null);
@@ -22,8 +17,6 @@ export function BackfillBookForm({ users }: { users: { id: number; name: string 
   const [success, setSuccess] = useState(false);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const previewUrlRef = useRef<string | null>(null);
-  const [readDate, setReadDate] = useState<Date | undefined>(undefined);
-  const [calOpen, setCalOpen] = useState(false);
 
   function handleSelect(result: OLSearchResult) {
     setSelectedForSearch(result);
@@ -47,10 +40,9 @@ export function BackfillBookForm({ users }: { users: { id: number; name: string 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
-    if (!readDate) { setError('Please select a date read.'); return; }
     setSubmitting(true);
     const formData = new FormData(e.currentTarget);
-    const result = await addPastBook(formData);
+    const result = await overrideCurrentBook(formData);
     setSubmitting(false);
     if (result.error) {
       setError(result.error);
@@ -62,30 +54,36 @@ export function BackfillBookForm({ users }: { users: { id: number; name: string 
   if (success) {
     return (
       <div className="text-center space-y-4">
-        <div className="rounded-2xl bg-green-50 border border-green-200 px-6 py-8" style={{ fontFamily: 'var(--font-nunito)' }}>
-          <p className="text-2xl mb-2">📚</p>
-          <p className="text-base font-semibold text-green-800" style={{ fontFamily: 'var(--font-fredoka)' }}>
-            Past read added!
+        <div
+          className="rounded-2xl bg-green-50 border border-green-200 px-6 py-8"
+          style={{ fontFamily: 'var(--font-nunito)' }}
+        >
+          <p className="text-2xl mb-2">🌟</p>
+          <p
+            className="text-base font-semibold text-green-800"
+            style={{ fontFamily: 'var(--font-fredoka)' }}
+          >
+            Current book updated!
           </p>
           <p className="text-sm text-green-700 mt-1">
-            The book has been added to your club&apos;s archive.
+            The new book is now set as the club&apos;s current read.
           </p>
         </div>
         <div className="flex gap-3">
           <Link
-            href="/past-reads"
+            href="/"
             className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-center border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
             style={{ fontFamily: 'var(--font-nunito)' }}
           >
-            View Past Reads
+            View Home
           </Link>
-          <button
-            onClick={() => { setSuccess(false); setStep('search'); setPrefill(null); setSelectedForSearch(null); setCoverPreview(null); setReadDate(undefined); }}
-            className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all"
+          <Link
+            href="/admin"
+            className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-center text-white transition-all"
             style={{ background: 'var(--color-primary)', fontFamily: 'var(--font-nunito)' }}
           >
-            Add Another
-          </button>
+            Back to Admin
+          </Link>
         </div>
       </div>
     );
@@ -118,6 +116,7 @@ export function BackfillBookForm({ users }: { users: { id: number; name: string 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <input type="hidden" name="cover_url" defaultValue={prefill?.coverUrl ?? ''} />
+      <input type="hidden" name="ol_key" defaultValue={prefill?.key ?? ''} />
 
       <button
         type="button"
@@ -142,14 +141,17 @@ export function BackfillBookForm({ users }: { users: { id: number; name: string 
 
       {/* Cover upload */}
       <div>
-        <label className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide" style={{ fontFamily: 'var(--font-nunito)' }}>
+        <label
+          className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide"
+          style={{ fontFamily: 'var(--font-nunito)' }}
+        >
           Cover Image <span className="font-normal normal-case">(optional upload)</span>
         </label>
         <input
           type="file"
           name="cover_file"
           accept="image/*"
-          onChange={e => {
+          onChange={(e) => {
             const file = e.target.files?.[0];
             if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
             const url = file ? URL.createObjectURL(file) : null;
@@ -162,7 +164,10 @@ export function BackfillBookForm({ users }: { users: { id: number; name: string 
 
       {/* Title */}
       <div>
-        <label className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide" style={{ fontFamily: 'var(--font-nunito)' }}>
+        <label
+          className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide"
+          style={{ fontFamily: 'var(--font-nunito)' }}
+        >
           Title <span className="text-red-400">*</span>
         </label>
         <input
@@ -177,7 +182,10 @@ export function BackfillBookForm({ users }: { users: { id: number; name: string 
 
       {/* Author */}
       <div>
-        <label className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide" style={{ fontFamily: 'var(--font-nunito)' }}>
+        <label
+          className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide"
+          style={{ fontFamily: 'var(--font-nunito)' }}
+        >
           Author <span className="text-red-400">*</span>
         </label>
         <input
@@ -193,7 +201,10 @@ export function BackfillBookForm({ users }: { users: { id: number; name: string 
       {/* Year + Pages */}
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide" style={{ fontFamily: 'var(--font-nunito)' }}>
+          <label
+            className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide"
+            style={{ fontFamily: 'var(--font-nunito)' }}
+          >
             Pub. Year
           </label>
           <input
@@ -207,7 +218,10 @@ export function BackfillBookForm({ users }: { users: { id: number; name: string 
           />
         </div>
         <div>
-          <label className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide" style={{ fontFamily: 'var(--font-nunito)' }}>
+          <label
+            className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide"
+            style={{ fontFamily: 'var(--font-nunito)' }}
+          >
             Pages
           </label>
           <input
@@ -223,7 +237,10 @@ export function BackfillBookForm({ users }: { users: { id: number; name: string 
 
       {/* Genres */}
       <div>
-        <label className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide" style={{ fontFamily: 'var(--font-nunito)' }}>
+        <label
+          className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide"
+          style={{ fontFamily: 'var(--font-nunito)' }}
+        >
           Genres <span className="font-normal normal-case">(comma-separated)</span>
         </label>
         <input
@@ -236,71 +253,58 @@ export function BackfillBookForm({ users }: { users: { id: number; name: string 
         />
       </div>
 
-      {/* Submitted by */}
-      {users.length > 0 && (
-        <div>
-          <label className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide" style={{ fontFamily: 'var(--font-nunito)' }}>
-            Submitted by <span className="font-normal normal-case">(optional)</span>
-          </label>
-          <select
-            name="submitted_by_id"
-            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 bg-white"
+      {/* Submissions action */}
+      <div>
+        <label
+          className="block text-xs font-semibold mb-2 text-muted-foreground uppercase tracking-wide"
+          style={{ fontFamily: 'var(--font-nunito)' }}
+        >
+          Existing submissions <span className="text-red-400">*</span>
+        </label>
+        <div className="space-y-2">
+          <label
+            className="flex items-start gap-3 rounded-xl border border-gray-200 px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors has-[:checked]:border-[color:var(--color-primary)] has-[:checked]:bg-[color-mix(in_oklch,var(--color-primary)_6%,white)]"
             style={{ fontFamily: 'var(--font-nunito)' }}
           >
-            <option value="">— none —</option>
-            {users.map(u => (
-              <option key={u.id} value={u.id}>{u.name}</option>
-            ))}
-          </select>
-        </div>
-      )}
-
-      {/* Theme */}
-      <div>
-        <label className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide" style={{ fontFamily: 'var(--font-nunito)' }}>
-          Theme <span className="font-normal normal-case">(optional)</span>
-        </label>
-        <input
-          type="text"
-          name="theme"
-          placeholder="e.g. Summer reads, Dystopia…"
-          className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2"
-          style={{ fontFamily: 'var(--font-nunito)' }}
-        />
-      </div>
-
-      {/* Date Read */}
-      <div>
-        <label className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide" style={{ fontFamily: 'var(--font-nunito)' }}>
-          Date Read <span className="text-red-400">*</span>
-        </label>
-        <input type="hidden" name="read_date" value={readDate ? format(readDate, 'yyyy-MM-dd') : ''} />
-        <Popover open={calOpen} onOpenChange={setCalOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full justify-start text-left font-normal rounded-xl border-gray-200 px-3 py-2.5 h-auto text-sm"
-              style={{ fontFamily: 'var(--font-nunito)' }}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
-              {readDate ? format(readDate, 'MMM d, yyyy') : <span className="text-muted-foreground">Pick a date</span>}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0 rounded-2xl" align="start">
-            <Calendar
-              mode="single"
-              selected={readDate}
-              onSelect={(d) => { setReadDate(d); setCalOpen(false); }}
-              disabled={{ after: new Date() }}
-              initialFocus
+            <input
+              type="radio"
+              name="submissions_action"
+              value="keep"
+              defaultChecked
+              className="mt-0.5 accent-[color:var(--color-primary)]"
             />
-          </PopoverContent>
-        </Popover>
+            <div>
+              <p className="text-sm font-semibold text-foreground">Keep submissions</p>
+              <p className="text-xs text-muted-foreground">
+                Members&apos; suggestions are preserved for next time
+              </p>
+            </div>
+          </label>
+          <label
+            className="flex items-start gap-3 rounded-xl border border-gray-200 px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors has-[:checked]:border-amber-400 has-[:checked]:bg-amber-50"
+            style={{ fontFamily: 'var(--font-nunito)' }}
+          >
+            <input
+              type="radio"
+              name="submissions_action"
+              value="delete"
+              className="mt-0.5 accent-amber-500"
+            />
+            <div>
+              <p className="text-sm font-semibold text-foreground">Delete submissions</p>
+              <p className="text-xs text-muted-foreground">
+                Clear the queue for a fresh start
+              </p>
+            </div>
+          </label>
+        </div>
       </div>
 
       {error && (
-        <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-700" style={{ fontFamily: 'var(--font-nunito)' }}>
+        <div
+          className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-700"
+          style={{ fontFamily: 'var(--font-nunito)' }}
+        >
           {error}
         </div>
       )}
@@ -311,7 +315,7 @@ export function BackfillBookForm({ users }: { users: { id: number; name: string 
         className="w-full py-3 rounded-xl font-semibold text-white text-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed"
         style={{ background: 'var(--color-primary)', fontFamily: 'var(--font-nunito)' }}
       >
-        {submitting ? 'Adding…' : 'Add Past Read'}
+        {submitting ? 'Setting current book…' : 'Set as Current Book'}
       </button>
     </form>
   );

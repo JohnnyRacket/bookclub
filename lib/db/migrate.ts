@@ -74,5 +74,28 @@ export function runMigrations(db: Database.Database): void {
     CREATE INDEX IF NOT EXISTS idx_books_status     ON books(status);
     CREATE INDEX IF NOT EXISTS idx_book_thumbs_book ON book_thumbs(book_id);
     CREATE INDEX IF NOT EXISTS idx_book_reacts_book ON book_reacts(book_id);
+
+    CREATE TABLE IF NOT EXISTS book_selection_sessions (
+      id           INTEGER PRIMARY KEY AUTOINCREMENT,
+      status       TEXT    NOT NULL DEFAULT 'open',
+      created_by   INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      created_at   INTEGER NOT NULL DEFAULT (unixepoch()),
+      closed_at    INTEGER,
+      finalized_at INTEGER
+    );
+
+    CREATE TABLE IF NOT EXISTS book_selection_votes (
+      session_id INTEGER NOT NULL REFERENCES book_selection_sessions(id) ON DELETE CASCADE,
+      book_id    INTEGER NOT NULL REFERENCES books(id) ON DELETE CASCADE,
+      user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+      PRIMARY KEY (session_id, book_id, user_id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_selection_votes_session ON book_selection_votes(session_id);
+    CREATE INDEX IF NOT EXISTS idx_selection_votes_user    ON book_selection_votes(session_id, user_id);
   `);
+
+  // Additive migrations (ALTER TABLE — use try/catch since SQLite has no ADD COLUMN IF NOT EXISTS)
+  try { db.exec(`ALTER TABLE books ADD COLUMN theme TEXT`); } catch { /* column already exists */ }
 }

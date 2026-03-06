@@ -9,6 +9,7 @@ import type { OLSearchResult } from '@/lib/openlibrary/client';
 export default function SubmitPage() {
   const [selected, setSelected] = useState<OLSearchResult | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [canSubmitMore, setCanSubmitMore] = useState(true);
 
   if (submitted) {
     return (
@@ -28,13 +29,22 @@ export default function SubmitPage() {
             Your suggestion has been sent to the admin for review.
           </p>
           <div className="flex flex-col gap-2">
-            <button
-              onClick={() => { setSubmitted(false); setSelected(null); }}
-              className="px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90"
-              style={{ background: 'var(--color-primary)', fontFamily: 'var(--font-nunito)' }}
+            {canSubmitMore && (
+              <button
+                onClick={() => { setSubmitted(false); setSelected(null); }}
+                className="px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90"
+                style={{ background: 'var(--color-primary)', fontFamily: 'var(--font-nunito)' }}
+              >
+                Submit another
+              </button>
+            )}
+            <Link
+              href="/my-submissions"
+              className="px-4 py-2.5 rounded-xl text-sm font-semibold text-center bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+              style={{ fontFamily: 'var(--font-nunito)' }}
             >
-              Submit another
-            </button>
+              My Submissions
+            </Link>
             <Link
               href="/"
               className="px-4 py-2.5 rounded-xl text-sm font-semibold text-center bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
@@ -88,7 +98,7 @@ export default function SubmitPage() {
           </div>
 
           {/* Form */}
-          <BookForm prefill={selected} onSuccess={() => setSubmitted(true)} />
+          <BookForm prefill={selected} onSuccess={(canMore) => { setSubmitted(true); setCanSubmitMore(canMore); }} />
         </div>
       </div>
     </div>

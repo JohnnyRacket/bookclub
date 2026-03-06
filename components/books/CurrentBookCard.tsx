@@ -5,6 +5,7 @@ import { BookReacts } from './BookReacts';
 import type { BookWithStats } from '@/lib/actions/books';
 import type { CustomReaction } from '@/lib/actions/reactions';
 import { useBookStats } from '@/hooks/useBookStats';
+import { Sparkles } from 'lucide-react';
 
 interface CurrentBookCardProps {
   book: BookWithStats | null;
@@ -92,6 +93,28 @@ export function CurrentBookCard({ book, emojis, thumbsUpEmoji, thumbsDownEmoji, 
               upEmoji={thumbsUpEmoji}
               downEmoji={thumbsDownEmoji}
             />
+            {/* Mobile-only: theme + suggested by directly under voting buttons */}
+            {(book.theme || book.submitter_name) && (
+              <div className="sm:hidden flex flex-col items-start gap-1">
+                {book.theme && (
+                  <span
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold"
+                    style={{
+                      color: 'var(--color-primary)',
+                      fontFamily: 'var(--font-nunito)',
+                    }}
+                  >
+                    <Sparkles size={12} />
+                    {book.theme}
+                  </span>
+                )}
+                {book.submitter_name && (
+                  <p className="text-xs text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>
+                    Suggested by {book.submitter_name}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Metadata */}
@@ -128,8 +151,22 @@ export function CurrentBookCard({ book, emojis, thumbsUpEmoji, thumbsDownEmoji, 
               </div>
             )}
 
+            {book.theme && (
+              <div className="hidden sm:block mb-1.5">
+                <span
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold"
+                  style={{
+                    color: 'var(--color-primary)',
+                    fontFamily: 'var(--font-nunito)',
+                  }}
+                >
+                  <Sparkles size={12} />
+                  {book.theme}
+                </span>
+              </div>
+            )}
             {book.submitter_name && (
-              <p className="text-xs text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>
+              <p className="hidden sm:block text-xs text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>
                 Suggested by {book.submitter_name}
               </p>
             )}

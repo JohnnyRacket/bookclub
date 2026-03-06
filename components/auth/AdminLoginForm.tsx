@@ -1,12 +1,67 @@
 'use client';
 
-import { useActionState } from 'react';
-import { verifyAdmin } from '@/lib/actions/admin';
+import { useActionState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
+import { verifyAdmin, elevateToAdmin } from '@/lib/actions/admin';
 import { Button } from '@/components/ui/button';
 import { PinPad } from '@/components/auth/PinPad';
 
-export function AdminLoginForm() {
+export function AdminLoginForm({ pinless }: { pinless: boolean }) {
   const [state, action, pending] = useActionState(verifyAdmin, null);
+  const [isElevating, startElevate] = useTransition();
+  const router = useRouter();
+
+  if (pinless) {
+    function handleConfirm() {
+      startElevate(async () => {
+        const res = await elevateToAdmin();
+        if (res.success) router.push('/admin');
+      });
+    }
+
+    return (
+      <div className="w-full max-w-xs animate-page-in">
+        <div className="mb-6 text-center stagger">
+          <p
+            className="text-xs font-bold uppercase tracking-widest mb-1"
+            style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-nunito)' }}
+          >
+            Admin Access
+          </p>
+          <h1
+            className="text-3xl font-semibold text-foreground"
+            style={{ fontFamily: 'var(--font-fredoka)' }}
+          >
+            Elevate to Admin
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>
+            Everyone in this club is trusted — confirm to gain admin access.
+          </p>
+        </div>
+
+        <div className="bg-white rounded-3xl shadow-[var(--shadow-card)] p-7 space-y-4 stagger">
+          <Button
+            onClick={handleConfirm}
+            disabled={isElevating}
+            className="w-full h-12 rounded-2xl font-semibold text-sm text-white border-0
+                       bg-[var(--color-primary)] hover:opacity-90 active:opacity-80
+                       disabled:opacity-50 disabled:cursor-not-allowed
+                       transition-opacity shadow-sm"
+            style={{ fontFamily: 'var(--font-nunito)' }}
+          >
+            {isElevating ? 'Confirming…' : 'Confirm'}
+          </Button>
+          <a
+            href="/"
+            className="block w-full text-center py-2 rounded-2xl text-sm font-semibold border-2 border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+            style={{ fontFamily: 'var(--font-nunito)' }}
+          >
+            Cancel
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-xs animate-page-in">

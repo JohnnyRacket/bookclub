@@ -60,8 +60,14 @@ export function PastBookCard({ book, thumbsUpEmoji, thumbsDownEmoji }: PastBookC
               </span>
             )}
             {topReacts.length > 0 && (
-              <span className="text-xs">
-                {topReacts.map(r => r.emoji).join('')}
+              <span className="flex items-center gap-0.5 text-xs">
+                {topReacts.map(r =>
+                  r.emoji.startsWith('/') ? (
+                    <img key={r.emoji} src={r.emoji} alt="reaction" className="w-4 h-4 object-contain" />
+                  ) : (
+                    <span key={r.emoji}>{r.emoji}</span>
+                  )
+                )}
               </span>
             )}
           </div>

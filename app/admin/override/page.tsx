@@ -1,11 +1,10 @@
-import { requireAdmin, listMembers } from '@/lib/actions/admin';
+import { requireAdmin } from '@/lib/actions/admin';
 import { AuthShell } from '@/components/auth/AuthShell';
-import { BackfillBookForm } from '@/components/books/BackfillBookForm';
+import { OverrideBookForm } from '@/components/books/OverrideBookForm';
 import Link from 'next/link';
 
-export default async function BackfillPage() {
+export default async function OverridePage() {
   await requireAdmin();
-  const members = await listMembers();
 
   return (
     <AuthShell>
@@ -30,17 +29,17 @@ export default async function BackfillPage() {
               className="text-3xl font-semibold text-foreground"
               style={{ fontFamily: 'var(--font-fredoka)' }}
             >
-              Backfill Past Read
+              Override Current Book
             </h1>
             <p className="mt-1 text-sm text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>
-              Add a book directly to the archive with a custom read date.
+              Force-set any book as current, bypassing voting and submissions.
             </p>
           </div>
         </div>
 
         {/* Form card */}
         <div className="bg-white rounded-2xl shadow-[var(--shadow-card-sm)] px-5 py-6 stagger">
-          <BackfillBookForm users={members} />
+          <OverrideBookForm />
         </div>
       </div>
     </AuthShell>

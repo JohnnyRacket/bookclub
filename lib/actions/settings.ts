@@ -20,6 +20,12 @@ export type ClubConfig = {
   maxSubmissionsPerMember: number;
   thumbsUpEmoji: string;
   thumbsDownEmoji: string;
+  selectionMode: 'admin' | 'vote' | 'random';
+  votesPerMember: number;
+  randomReveal: boolean;
+  voteStartAdminOnly: boolean;
+  purgeAfterSelection: boolean;
+  pinlessAdmin: boolean;
 };
 
 const CONFIG_KEYS = [
@@ -30,6 +36,12 @@ const CONFIG_KEYS = [
   'max_submissions',
   'thumbs_up_emoji',
   'thumbs_down_emoji',
+  'selection_mode',
+  'votes_per_member',
+  'random_reveal',
+  'vote_start_admin_only',
+  'purge_after_selection',
+  'pinless_admin',
 ] as const;
 
 export async function getMeetingSettings(): Promise<MeetingSettings> {
@@ -65,6 +77,9 @@ export async function getClubConfig(): Promise<ClubConfig> {
     ? (parseInt(maxRaw, 10) || clubConfig.maxSubmissionsPerMember)
     : clubConfig.maxSubmissionsPerMember;
 
+  const votesPerMemberRaw = map.get('votes_per_member');
+  const votesPerMember = votesPerMemberRaw ? (parseInt(votesPerMemberRaw, 10) || 2) : 2;
+
   return {
     name: map.get('club_name') ?? clubConfig.name,
     primaryColor: map.get('primary_color') ?? clubConfig.primaryColor,
@@ -73,6 +88,12 @@ export async function getClubConfig(): Promise<ClubConfig> {
     maxSubmissionsPerMember,
     thumbsUpEmoji: map.get('thumbs_up_emoji') ?? clubConfig.thumbsUpEmoji,
     thumbsDownEmoji: map.get('thumbs_down_emoji') ?? clubConfig.thumbsDownEmoji,
+    selectionMode: (map.get('selection_mode') ?? 'vote') as 'admin' | 'vote' | 'random',
+    votesPerMember,
+    randomReveal: map.get('random_reveal') === '1',
+    voteStartAdminOnly: map.get('vote_start_admin_only') === '1',
+    purgeAfterSelection: map.get('purge_after_selection') !== '0',
+    pinlessAdmin: map.get('pinless_admin') === '1',
   };
 }
 
@@ -87,6 +108,12 @@ export async function updateClubConfig(
     ['max_submissions', (formData.get('max_submissions') as string)?.trim() || null],
     ['thumbs_up_emoji', (formData.get('thumbs_up_emoji') as string)?.trim() || null],
     ['thumbs_down_emoji', (formData.get('thumbs_down_emoji') as string)?.trim() || null],
+    ['selection_mode', (formData.get('selection_mode') as string)?.trim() || null],
+    ['votes_per_member', (formData.get('votes_per_member') as string)?.trim() || null],
+    ['random_reveal', formData.get('random_reveal') === '1' ? '1' : '0'],
+    ['vote_start_admin_only', formData.get('vote_start_admin_only') === '1' ? '1' : '0'],
+    ['purge_after_selection', formData.get('purge_after_selection') === '1' ? '1' : '0'],
+    ['pinless_admin', formData.get('pinless_admin') === '1' ? '1' : '0'],
   ];
 
   for (const [key, value] of fields) {
@@ -126,6 +153,7 @@ export async function updateClubConfig(
   revalidatePath('/');
   revalidatePath('/admin');
   revalidatePath('/submit');
+  revalidatePath('/select-book/vote');
   return { success: true };
 }
 

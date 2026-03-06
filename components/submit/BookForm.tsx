@@ -1,19 +1,46 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { submitBook } from '@/lib/actions/submit';
+import { useRouter } from 'next/navigation';
+import { submitBook, updateMySubmission } from '@/lib/actions/submit';
 import type { OLSearchResult } from '@/lib/openlibrary/client';
 
 interface BookFormProps {
   prefill: OLSearchResult | null;
-  onSuccess: () => void;
+  onSuccess?: (canSubmitMore: boolean) => void;
+  editBookId?: number;
+  initialValues?: {
+    title: string;
+    author: string;
+    year: number | null;
+    pages: number | null;
+    genres: string | null; // JSON array string e.g. '["Fiction"]'
+    cover_url: string | null;
+    ol_key: string | null;
+  };
 }
 
-export function BookForm({ prefill, onSuccess }: BookFormProps) {
+export function BookForm({ prefill, onSuccess, editBookId, initialValues }: BookFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const previewUrlRef = useRef<string | null>(null);
+  const router = useRouter();
+
+  const isEditMode = editBookId !== undefined;
+
+  // Parse genres JSON string to comma-separated for display
+  const initialGenres = (() => {
+    if (isEditMode && initialValues?.genres) {
+      try {
+        const parsed = JSON.parse(initialValues.genres);
+        return Array.isArray(parsed) ? parsed.join(', ') : '';
+      } catch {
+        return '';
+      }
+    }
+    return prefill?.genres?.join(', ') ?? '';
+  })();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -21,27 +48,41 @@ export function BookForm({ prefill, onSuccess }: BookFormProps) {
     setSubmitting(true);
     const form = e.currentTarget;
     const formData = new FormData(form);
-    const result = await submitBook(formData);
-    setSubmitting(false);
-    if (result.error) {
-      setError(result.error);
+
+    if (isEditMode) {
+      const result = await updateMySubmission(editBookId, formData);
+      setSubmitting(false);
+      if (result.error) {
+        setError(result.error);
+      } else {
+        router.push('/my-submissions');
+      }
     } else {
-      onSuccess();
+      const result = await submitBook(formData);
+      setSubmitting(false);
+      if (result.error) {
+        setError(result.error);
+      } else {
+        onSuccess?.(result.canSubmitMore ?? true);
+      }
     }
   }
 
-  const genres = prefill?.genres?.join(', ') ?? '';
+  const displayCover = coverPreview ?? (isEditMode ? initialValues?.cover_url : prefill?.coverUrl) ?? null;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <input type="hidden" name="ol_key" defaultValue={prefill?.olKey ?? ''} />
-      <input type="hidden" name="cover_url" defaultValue={prefill?.coverUrl ?? ''} />
+      <input type="hidden" name="ol_key" defaultValue={isEditMode ? (initialValues?.ol_key ?? '') : (prefill?.olKey ?? '')} />
+      <input type="hidden" name="cover_url" defaultValue={isEditMode ? '' : (prefill?.coverUrl ?? '')} />
+      {isEditMode && (
+        <input type="hidden" name="existing_cover_url" defaultValue={initialValues?.cover_url ?? ''} />
+      )}
 
-      {(coverPreview ?? prefill?.coverUrl) && (
+      {displayCover && (
         <div className="flex justify-center">
           <img
-            src={(coverPreview ?? prefill?.coverUrl)!}
-            alt={prefill?.title ?? 'Cover preview'}
+            src={displayCover}
+            alt={isEditMode ? (initialValues?.title ?? 'Cover') : (prefill?.title ?? 'Cover preview')}
             className="w-24 h-34 object-cover rounded-xl shadow-md"
           />
         </div>
@@ -75,7 +116,7 @@ export function BookForm({ prefill, onSuccess }: BookFormProps) {
           type="text"
           name="title"
           required
-          defaultValue={prefill?.title ?? ''}
+          defaultValue={isEditMode ? (initialValues?.title ?? '') : (prefill?.title ?? '')}
           className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 transition-shadow"
           style={{ fontFamily: 'var(--font-nunito)' }}
         />
@@ -89,7 +130,7 @@ export function BookForm({ prefill, onSuccess }: BookFormProps) {
           type="text"
           name="author"
           required
-          defaultValue={prefill?.author ?? ''}
+          defaultValue={isEditMode ? (initialValues?.author ?? '') : (prefill?.author ?? '')}
           className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 transition-shadow"
           style={{ fontFamily: 'var(--font-nunito)' }}
         />
@@ -103,7 +144,7 @@ export function BookForm({ prefill, onSuccess }: BookFormProps) {
           <input
             type="number"
             name="year"
-            defaultValue={prefill?.year ?? ''}
+            defaultValue={isEditMode ? (initialValues?.year ?? '') : (prefill?.year ?? '')}
             min={1000}
             max={2100}
             className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2"
@@ -117,7 +158,7 @@ export function BookForm({ prefill, onSuccess }: BookFormProps) {
           <input
             type="number"
             name="pages"
-            defaultValue={prefill?.pages ?? ''}
+            defaultValue={isEditMode ? (initialValues?.pages ?? '') : (prefill?.pages ?? '')}
             min={1}
             className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2"
             style={{ fontFamily: 'var(--font-nunito)' }}
@@ -133,7 +174,7 @@ export function BookForm({ prefill, onSuccess }: BookFormProps) {
         <input
           type="text"
           name="genres"
-          defaultValue={genres}
+          defaultValue={initialGenres}
           placeholder="Fiction, Historical, Mystery…"
           className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2"
           style={{ fontFamily: 'var(--font-nunito)' }}
@@ -146,14 +187,26 @@ export function BookForm({ prefill, onSuccess }: BookFormProps) {
         </div>
       )}
 
-      <button
-        type="submit"
-        disabled={submitting}
-        className="w-full py-3 rounded-xl font-semibold text-white text-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-        style={{ background: 'var(--color-primary)', fontFamily: 'var(--font-nunito)' }}
-      >
-        {submitting ? 'Submitting…' : 'Submit Book'}
-      </button>
+      <div className="flex gap-2">
+        {isEditMode && (
+          <button
+            type="button"
+            onClick={() => router.push('/my-submissions')}
+            className="flex-1 py-3 rounded-xl font-semibold text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all"
+            style={{ fontFamily: 'var(--font-nunito)' }}
+          >
+            Cancel
+          </button>
+        )}
+        <button
+          type="submit"
+          disabled={submitting}
+          className="flex-1 py-3 rounded-xl font-semibold text-white text-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+          style={{ background: 'var(--color-primary)', fontFamily: 'var(--font-nunito)' }}
+        >
+          {submitting ? (isEditMode ? 'Saving…' : 'Submitting…') : (isEditMode ? 'Save Changes' : 'Submit Book')}
+        </button>
+      </div>
     </form>
   );
 }

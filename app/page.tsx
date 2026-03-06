@@ -1,12 +1,15 @@
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth/session';
 import { getClubConfig } from '@/lib/actions/settings';
-import { getCurrentBook, getPastBooks } from '@/lib/actions/books';
+import { getCurrentBook, getPastBooks, getSubmittedBookCount } from '@/lib/actions/books';
 import { getMySubmissions } from '@/lib/actions/submit';
 import { getMeetingSettings, getNextBookTheme } from '@/lib/actions/settings';
 import { getCustomReactions } from '@/lib/actions/reactions';
+import { getOpenVotingSession } from '@/lib/actions/book-selection';
+import { isAdmin, isPinlessMode } from '@/lib/actions/admin';
 import Image from 'next/image';
 import { ActionMenu } from '@/components/ActionMenu';
+import { VoteAlert } from '@/components/VoteAlert';
 import { CurrentBookCard } from '@/components/books/CurrentBookCard';
 import { PastBookCard } from '@/components/books/PastBookCard';
 import { MeetingCard } from '@/components/books/MeetingCard';
@@ -17,7 +20,7 @@ export default async function HomePage() {
   const session = await getSession();
   if (!session) redirect('/join');
 
-  const [currentBook, pastBooks, meetingSettings, mySubmissions, clubConfig, nextBookTheme, customReactions] = await Promise.all([
+  const [currentBook, pastBooks, meetingSettings, mySubmissions, clubConfig, nextBookTheme, customReactions, openSession, adminResult, submittedBookCount, pinlessResult] = await Promise.all([
     getCurrentBook(),
     getPastBooks(),
     getMeetingSettings(),
@@ -25,6 +28,10 @@ export default async function HomePage() {
     getClubConfig(),
     getNextBookTheme(),
     getCustomReactions(),
+    getOpenVotingSession(),
+    isAdmin(),
+    getSubmittedBookCount(),
+    isPinlessMode(),
   ]);
 
   const atSubmissionCap = mySubmissions.length >= clubConfig.maxSubmissionsPerMember;
@@ -55,13 +62,22 @@ export default async function HomePage() {
               </p>
             </div>
           </div>
-          <ActionMenu atSubmissionCap={atSubmissionCap} />
+          <ActionMenu
+            atSubmissionCap={atSubmissionCap}
+            submissionCount={mySubmissions.length}
+            selectionMode={clubConfig.selectionMode}
+            openSessionId={openSession?.id ?? null}
+            isAdmin={adminResult}
+            submittedBookCount={submittedBookCount}
+            isPinless={pinlessResult}
+          />
         </div>
 
         {/* Main layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8 animate-page-in">
           {/* Current book — 2/3 width on desktop */}
           <div className="lg:col-span-2">
+            <VoteAlert initial={openSession?.status === 'open' ? { sessionId: openSession.id, status: openSession.status } : null} />
             <CurrentBookCard
               book={currentBook}
               emojis={clubConfig.emojiReactions}
