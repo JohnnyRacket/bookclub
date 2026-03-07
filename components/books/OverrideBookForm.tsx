@@ -116,7 +116,7 @@ export function OverrideBookForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <input type="hidden" name="cover_url" defaultValue={prefill?.coverUrl ?? ''} />
-      <input type="hidden" name="ol_key" defaultValue={prefill?.key ?? ''} />
+      <input type="hidden" name="ol_key" defaultValue={prefill?.olKey ?? ''} />
 
       <button
         type="button"

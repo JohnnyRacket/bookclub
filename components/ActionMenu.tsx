@@ -113,7 +113,7 @@ export function ActionMenu({
     const res = await startVotingSession();
     if (res.error) {
       setVoteError(res.error);
-      return res.error;
+      return;
     } else if (res.sessionId) {
       setOpen(false);
       router.push(`/select-book/vote/${res.sessionId}`);

@@ -35,7 +35,7 @@ function buildFights(books: GameBook[], winnerId: number, seed: number): FightEn
       i++; // consumed two books
     } else {
       const challenger = shuffled[i];
-      const wi = (champion.id === winnerId || challenger.id === winnerId)
+      const wi: number = (champion.id === winnerId || challenger.id === winnerId)
         ? winnerId
         : (rng() > 0.5 ? champion.id : challenger.id);
       fights.push({ bookA: champion, bookB: challenger, winnerId: wi });

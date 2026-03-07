@@ -109,6 +109,7 @@ export function PastBookModal({ book, open, onOpenChange, thumbsUpEmoji, thumbsD
             bookId={book.id}
             reacts={book.reacts}
             locked={true}
+            emojis={[]}
           />
         </div>
       </DialogContent>
