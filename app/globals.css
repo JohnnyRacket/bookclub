@@ -126,6 +126,12 @@
     @apply bg-background text-foreground;
     font-family: var(--font-nunito), sans-serif;
   }
+  button:not(:disabled) {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
 }
 
 /* Entry animation */
