@@ -98,13 +98,14 @@ export function SpinWheel({ books, winnerId, seed, onComplete }: GameProps) {
     const winnerIndex = books.findIndex(b => b.id === winnerId);
 
     const rng = mulberry32(seed);
-    const extraRotations = 4 + rng() * 3; // 4–7 full spins
-    // Land pointer (at top = -PI/2) on center of winner segment
-    // Winner segment center angle (without offset): winnerIndex * segAngle + segAngle/2
-    // We want: finalAngle + winnerIndex * segAngle + segAngle/2 = PI/2 (top)
-    // so finalAngle = PI/2 - winnerIndex * segAngle - segAngle/2
-    const targetAngle = Math.PI / 2 - winnerIndex * segAngle - segAngle / 2;
-    const totalRotation = extraRotations * 2 * Math.PI + targetAngle;
+    // extraSpins MUST be an integer so extraSpins * 2π ≡ 0 (mod 2π) and doesn't
+    // shift the landing angle. A fractional spin count would offset the winner.
+    const extraSpins = 5 + Math.floor(rng() * 3); // 5, 6, or 7 whole rotations
+    // Land pointer (at top = -PI/2) on center of winner segment.
+    // Winner segment center: angle + winnerIndex * segAngle - PI/2 + segAngle/2
+    // We want that to equal -PI/2, so: angle = -winnerIndex * segAngle - segAngle/2
+    const targetAngle = -winnerIndex * segAngle - segAngle / 2;
+    const totalRotation = extraSpins * 2 * Math.PI + targetAngle;
     const duration = 7000 + rng() * 2000; // 7–9s
 
     const startTime = performance.now();
