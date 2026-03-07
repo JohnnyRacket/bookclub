@@ -180,13 +180,14 @@ export function RevealRoom({ initialSession, isAdmin }: Props) {
   const books = startPayload?.books ?? session.books;
   const seed = startPayload?.seed ?? session.seed;
   const winnerId = startPayload?.winner_book_id ?? session.winner_book_id;
+  const isWideGame = gameType === 'horse_race' && phase === 'playing';
 
   return (
     <div
       className="min-h-screen px-4 py-8"
       style={{ background: 'color-mix(in oklch, var(--color-primary) 8%, white)' }}
     >
-      <div className="max-w-2xl mx-auto">
+      <div className={isWideGame ? 'max-w-5xl mx-auto' : 'max-w-2xl mx-auto'}>
         {/* Header */}
         <div className="text-center mb-6 animate-page-in">
           <h1
