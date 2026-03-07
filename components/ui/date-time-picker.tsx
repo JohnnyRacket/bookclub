@@ -41,6 +41,10 @@ export function DateTimePicker({ name, defaultValue, className }: DateTimePicker
   const [minutes, setMinutes] = React.useState<number>(parsed ? parsed.getMinutes() : 0);
   const [open, setOpen] = React.useState(false);
 
+  // Local string state so the user can freely backspace and retype
+  const [hourInput, setHourInput] = React.useState<string>(pad(to12h(parsed ? parsed.getHours() : 18)));
+  const [minuteInput, setMinuteInput] = React.useState<string>(pad(parsed ? parsed.getMinutes() : 0));
+
   const ampm = hours < 12 ? 'AM' : 'PM';
   const display12h = to12h(hours);
 
@@ -50,40 +54,81 @@ export function DateTimePicker({ name, defaultValue, className }: DateTimePicker
     ? `${format(date, 'MMM d, yyyy')} at ${display12h}:${pad(minutes)} ${ampm}`
     : 'Pick a date & time';
 
-  function handleHourChange(e: React.ChangeEvent<HTMLInputElement>) {
-    let v = parseInt(e.target.value, 10);
-    if (isNaN(v)) v = 12;
-    v = Math.min(12, Math.max(1, v));
-    // Keep the AM/PM when adjusting hour
+  function commitHour(raw: string) {
+    let v = parseInt(raw, 10);
+    if (isNaN(v) || v < 1) v = 1;
+    if (v > 12) v = 12;
     const newHours = ampm === 'AM' ? (v % 12) : (v % 12) + 12;
     setHours(newHours);
+    setHourInput(pad(v));
+  }
+
+  function handleHourChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const raw = e.target.value.replace(/\D/g, '').slice(0, 2);
+    setHourInput(raw);
+    // Auto-commit if we have a valid complete value
+    const v = parseInt(raw, 10);
+    if (!isNaN(v) && v >= 1 && v <= 12) {
+      const newHours = ampm === 'AM' ? (v % 12) : (v % 12) + 12;
+      setHours(newHours);
+    }
+  }
+
+  function handleHourBlur() {
+    commitHour(hourInput);
   }
 
   function handleHourKey(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'ArrowUp') {
       e.preventDefault();
       setHours(h => {
-        const next12 = (to12h(h) % 12) + 1; // 1→2→...→12→1
-        return ampm === 'AM' ? next12 % 12 : (next12 % 12) + 12;
+        const next12 = (to12h(h) % 12) + 1;
+        const newH = ampm === 'AM' ? next12 % 12 : (next12 % 12) + 12;
+        setHourInput(pad(to12h(newH)));
+        return newH;
       });
     }
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       setHours(h => {
-        const prev12 = ((to12h(h) - 2 + 12) % 12) + 1; // 12→11→...→1→12
-        return ampm === 'AM' ? prev12 % 12 : (prev12 % 12) + 12;
+        const prev12 = ((to12h(h) - 2 + 12) % 12) + 1;
+        const newH = ampm === 'AM' ? prev12 % 12 : (prev12 % 12) + 12;
+        setHourInput(pad(to12h(newH)));
+        return newH;
       });
     }
   }
 
-  function handleMinuteChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const v = Math.min(59, Math.max(0, parseInt(e.target.value, 10) || 0));
+  function commitMinute(raw: string) {
+    let v = parseInt(raw, 10);
+    if (isNaN(v) || v < 0) v = 0;
+    if (v > 59) v = 59;
     setMinutes(v);
+    setMinuteInput(pad(v));
+  }
+
+  function handleMinuteChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const raw = e.target.value.replace(/\D/g, '').slice(0, 2);
+    setMinuteInput(raw);
+    const v = parseInt(raw, 10);
+    if (!isNaN(v) && v >= 0 && v <= 59) {
+      setMinutes(v);
+    }
+  }
+
+  function handleMinuteBlur() {
+    commitMinute(minuteInput);
   }
 
   function handleMinuteKey(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === 'ArrowUp') { e.preventDefault(); setMinutes(m => Math.min(59, m + 1)); }
-    if (e.key === 'ArrowDown') { e.preventDefault(); setMinutes(m => Math.max(0, m - 1)); }
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setMinutes(m => { const next = Math.min(59, m + 1); setMinuteInput(pad(next)); return next; });
+    }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setMinutes(m => { const next = Math.max(0, m - 1); setMinuteInput(pad(next)); return next; });
+    }
   }
 
   function toggleAmPm() {
@@ -119,25 +164,29 @@ export function DateTimePicker({ name, defaultValue, className }: DateTimePicker
             <ClockIcon className="h-4 w-4 text-muted-foreground shrink-0" />
             <div className="flex items-center gap-1" style={{ fontFamily: 'var(--font-nunito)' }}>
               <input
-                type="number"
-                min={1}
-                max={12}
-                value={pad(display12h)}
+                type="text"
+                inputMode="numeric"
+                value={hourInput}
                 onChange={handleHourChange}
+                onBlur={handleHourBlur}
                 onKeyDown={handleHourKey}
+                onFocus={e => e.target.select()}
                 className="w-10 text-center text-sm font-medium rounded-lg border border-gray-200 py-1 focus:outline-none focus:ring-2 focus:ring-ring"
                 aria-label="Hours"
+                placeholder="12"
               />
               <span className="text-muted-foreground font-semibold">:</span>
               <input
-                type="number"
-                min={0}
-                max={59}
-                value={pad(minutes)}
+                type="text"
+                inputMode="numeric"
+                value={minuteInput}
                 onChange={handleMinuteChange}
+                onBlur={handleMinuteBlur}
                 onKeyDown={handleMinuteKey}
+                onFocus={e => e.target.select()}
                 className="w-10 text-center text-sm font-medium rounded-lg border border-gray-200 py-1 focus:outline-none focus:ring-2 focus:ring-ring"
                 aria-label="Minutes"
+                placeholder="00"
               />
               <button
                 type="button"
