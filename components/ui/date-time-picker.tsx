@@ -23,8 +23,13 @@ function toDatetimeLocal(date: Date, hours: number, minutes: number): string {
   return `${format(date, 'yyyy-MM-dd')}T${pad(hours)}:${pad(minutes)}`;
 }
 
+// Convert 24h hours to 12h display value (1–12)
+function to12h(h: number): number {
+  const v = h % 12;
+  return v === 0 ? 12 : v;
+}
+
 export function DateTimePicker({ name, defaultValue, className }: DateTimePickerProps) {
-  // Parse defaultValue into date + time parts
   const parsed = React.useMemo(() => {
     if (!defaultValue) return null;
     const d = parse(defaultValue, "yyyy-MM-dd'T'HH:mm", new Date());
@@ -32,19 +37,43 @@ export function DateTimePicker({ name, defaultValue, className }: DateTimePicker
   }, [defaultValue]);
 
   const [date, setDate] = React.useState<Date | undefined>(parsed ?? undefined);
-  const [hours, setHours] = React.useState<number>(parsed ? parsed.getHours() : 18);
+  const [hours, setHours] = React.useState<number>(parsed ? parsed.getHours() : 18); // 24h internally
   const [minutes, setMinutes] = React.useState<number>(parsed ? parsed.getMinutes() : 0);
   const [open, setOpen] = React.useState(false);
+
+  const ampm = hours < 12 ? 'AM' : 'PM';
+  const display12h = to12h(hours);
 
   const hiddenValue = date ? toDatetimeLocal(date, hours, minutes) : '';
 
   const displayLabel = date
-    ? `${format(date, 'MMM d, yyyy')} at ${pad(hours)}:${pad(minutes)}`
+    ? `${format(date, 'MMM d, yyyy')} at ${display12h}:${pad(minutes)} ${ampm}`
     : 'Pick a date & time';
 
   function handleHourChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const v = Math.min(23, Math.max(0, parseInt(e.target.value, 10) || 0));
-    setHours(v);
+    let v = parseInt(e.target.value, 10);
+    if (isNaN(v)) v = 12;
+    v = Math.min(12, Math.max(1, v));
+    // Keep the AM/PM when adjusting hour
+    const newHours = ampm === 'AM' ? (v % 12) : (v % 12) + 12;
+    setHours(newHours);
+  }
+
+  function handleHourKey(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHours(h => {
+        const next12 = (to12h(h) % 12) + 1; // 1→2→...→12→1
+        return ampm === 'AM' ? next12 % 12 : (next12 % 12) + 12;
+      });
+    }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHours(h => {
+        const prev12 = ((to12h(h) - 2 + 12) % 12) + 1; // 12→11→...→1→12
+        return ampm === 'AM' ? prev12 % 12 : (prev12 % 12) + 12;
+      });
+    }
   }
 
   function handleMinuteChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -52,14 +81,13 @@ export function DateTimePicker({ name, defaultValue, className }: DateTimePicker
     setMinutes(v);
   }
 
-  function handleHourKey(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === 'ArrowUp') { e.preventDefault(); setHours(h => Math.min(23, h + 1)); }
-    if (e.key === 'ArrowDown') { e.preventDefault(); setHours(h => Math.max(0, h - 1)); }
-  }
-
   function handleMinuteKey(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'ArrowUp') { e.preventDefault(); setMinutes(m => Math.min(59, m + 1)); }
     if (e.key === 'ArrowDown') { e.preventDefault(); setMinutes(m => Math.max(0, m - 1)); }
+  }
+
+  function toggleAmPm() {
+    setHours(h => h < 12 ? h + 12 : h - 12);
   }
 
   return (
@@ -92,9 +120,9 @@ export function DateTimePicker({ name, defaultValue, className }: DateTimePicker
             <div className="flex items-center gap-1" style={{ fontFamily: 'var(--font-nunito)' }}>
               <input
                 type="number"
-                min={0}
-                max={23}
-                value={pad(hours)}
+                min={1}
+                max={12}
+                value={pad(display12h)}
                 onChange={handleHourChange}
                 onKeyDown={handleHourKey}
                 className="w-10 text-center text-sm font-medium rounded-lg border border-gray-200 py-1 focus:outline-none focus:ring-2 focus:ring-ring"
@@ -111,6 +139,14 @@ export function DateTimePicker({ name, defaultValue, className }: DateTimePicker
                 className="w-10 text-center text-sm font-medium rounded-lg border border-gray-200 py-1 focus:outline-none focus:ring-2 focus:ring-ring"
                 aria-label="Minutes"
               />
+              <button
+                type="button"
+                onClick={toggleAmPm}
+                className="ml-1 px-2 py-1 text-xs font-semibold rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+                aria-label="Toggle AM/PM"
+              >
+                {ampm}
+              </button>
             </div>
             <Button
               size="sm"
