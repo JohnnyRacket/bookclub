@@ -1,19 +1,9 @@
 import Link from 'next/link';
 import { MapPin } from 'lucide-react';
 import type { MeetingSettings } from '@/lib/actions/settings';
-
-function formatMeetingDate(unixSec: number) {
-  const d = new Date(unixSec * 1000);
-  return {
-    date: d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }),
-    time: d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
-    year: d.getFullYear(),
-  };
-}
+import { MeetingDateTime } from './MeetingDateTime';
 
 export function MeetingCard({ settings }: { settings: MeetingSettings }) {
-  const formatted = settings.nextMeetingAt ? formatMeetingDate(settings.nextMeetingAt) : null;
-
   return (
     <div className="bg-white rounded-2xl shadow-[var(--shadow-card-sm)] p-5">
       <div className="flex items-start justify-between mb-3">
@@ -32,18 +22,9 @@ export function MeetingCard({ settings }: { settings: MeetingSettings }) {
         </Link>
       </div>
 
-      {formatted ? (
+      {settings.nextMeetingAt ? (
         <div>
-          <p
-            className="text-lg font-semibold text-foreground leading-snug"
-            style={{ fontFamily: 'var(--font-fredoka)' }}
-          >
-            {formatted.date}
-          </p>
-          <p className="text-sm text-muted-foreground mt-0.5" style={{ fontFamily: 'var(--font-nunito)' }}>
-            {formatted.time}
-            {formatted.year !== new Date().getFullYear() && ` · ${formatted.year}`}
-          </p>
+          <MeetingDateTime unixSec={settings.nextMeetingAt} />
           {settings.nextMeetingLocation && (
             <p className="text-sm text-muted-foreground mt-1" style={{ fontFamily: 'var(--font-nunito)' }}>
               <MapPin className="inline-block mr-1 -mt-0.5" size={13} />{settings.nextMeetingLocation}

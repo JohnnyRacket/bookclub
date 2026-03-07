@@ -199,7 +199,7 @@ export async function updateMeetingSettings(
   const location = (formData.get('next_meeting_location') as string)?.trim() ?? '';
 
   if (dtValue) {
-    const ts = Math.floor(new Date(dtValue).getTime() / 1000);
+    const ts = parseInt(dtValue, 10);
     if (!isNaN(ts)) {
       await db
         .insertInto('club_settings')

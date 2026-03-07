@@ -10,11 +10,6 @@ export default async function MeetingPage() {
 
   const settings = await getMeetingSettings();
 
-  // Convert unix timestamp to datetime-local string for the input
-  const dtValue = settings.nextMeetingAt
-    ? new Date(settings.nextMeetingAt * 1000).toISOString().slice(0, 16)
-    : '';
-
   return (
     <div
       className="min-h-screen px-4 py-8"
@@ -43,7 +38,7 @@ export default async function MeetingPage() {
         <div className="bg-white rounded-3xl shadow-[var(--shadow-card)] p-6 animate-page-in">
           <MeetingForm
             action={updateMeetingSettings}
-            defaultDatetime={dtValue}
+            defaultTimestamp={settings.nextMeetingAt}
             defaultLocation={settings.nextMeetingLocation ?? ''}
           />
         </div>

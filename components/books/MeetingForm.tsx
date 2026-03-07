@@ -1,20 +1,27 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { DateTimePicker } from '@/components/ui/date-time-picker';
 
 interface MeetingFormProps {
   action: (formData: FormData) => Promise<{ error?: string; success?: boolean }>;
-  defaultDatetime: string;
+  defaultTimestamp: number | null;
   defaultLocation: string;
 }
 
-export function MeetingForm({ action, defaultDatetime, defaultLocation }: MeetingFormProps) {
+export function MeetingForm({ action, defaultTimestamp, defaultLocation }: MeetingFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
+
+  const defaultDatetime = useMemo(() => {
+    if (!defaultTimestamp) return '';
+    const d = new Date(defaultTimestamp * 1000);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }, [defaultTimestamp]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -22,6 +29,11 @@ export function MeetingForm({ action, defaultDatetime, defaultLocation }: Meetin
     setSuccess(false);
     setSubmitting(true);
     const formData = new FormData(e.currentTarget);
+    const dtVal = formData.get('next_meeting_at') as string;
+    if (dtVal) {
+      const ts = Math.floor(new Date(dtVal).getTime() / 1000);
+      formData.set('next_meeting_at', String(ts));
+    }
     const result = await action(formData);
     setSubmitting(false);
     if (result.error) {
