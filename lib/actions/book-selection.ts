@@ -398,7 +398,7 @@ export async function reopenVotingSession(
   return { sessionId };
 }
 
-export async function startRandomSelection(): Promise<{
+export async function startRandomSelection(gameType?: string): Promise<{
   error?: string;
   redirect?: string;
   bookId?: number;
@@ -416,9 +416,14 @@ export async function startRandomSelection(): Promise<{
   if (submittedBooks.length === 0) return { error: 'No submitted books to pick from' };
 
   if (config.randomReveal) {
-    return { redirect: '/select-book/random-reveal' };
+    // Reveal flow: create a reveal session and redirect to it
+    const { createRevealSession } = await import('@/lib/actions/reveal-session');
+    const result = await createRevealSession(gameType ?? 'wheel');
+    if (result.error) return { error: result.error };
+    return { redirect: `/select-book/reveal/${result.revealId}` };
   }
 
+  // Direct pick (no reveal animation)
   const randomBook = submittedBooks[Math.floor(Math.random() * submittedBooks.length)];
   const now = Math.floor(Date.now() / 1000);
 

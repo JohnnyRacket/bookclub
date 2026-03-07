@@ -14,26 +14,30 @@ export function PastBookCard({ book, thumbsUpEmoji, thumbsDownEmoji }: PastBookC
   const [open, setOpen] = useState(false);
 
   const totalThumbs = book.up_count + book.down_count;
+  const score = totalThumbs === 0 ? null : `${Math.round((book.up_count / totalThumbs) * 100)}%`;
   const topReacts = book.reacts.filter(r => r.count > 0).slice(0, 3);
 
   return (
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex-shrink-0 w-36 bg-white rounded-2xl shadow-[var(--shadow-card-sm)] overflow-hidden text-left hover:shadow-[var(--shadow-float)] hover:-translate-y-0.5 transition-all cursor-pointer"
+        className="flex flex-col flex-shrink-0 w-36 bg-white rounded-2xl shadow-[var(--shadow-card-sm)] overflow-hidden text-left hover:shadow-[var(--shadow-float)] hover:-translate-y-0.5 transition-all cursor-pointer"
       >
         {/* Cover */}
         <div className="relative h-44 bg-gray-100">
           {book.cover_url ? (
-            <img
-              src={book.cover_url}
-              alt={book.title}
-              className="w-full h-full object-cover"
+            <div
+              className="w-full h-full"
+              style={{
+                backgroundImage: `url(${book.cover_url})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'top center',
+              }}
             />
           ) : (
             <div
               className="w-full h-full flex items-center justify-center text-3xl"
-              style={{ background: 'color-mix(in oklch, var(--color-primary) 12%, white)' }}
+              style={{ background: 'color-mix(in oklch, var(--color-primary) 30%, white)' }}
             >
               📖
             </div>
@@ -52,11 +56,12 @@ export function PastBookCard({ book, thumbsUpEmoji, thumbsDownEmoji }: PastBookC
             {book.author}
           </p>
           <div className="flex items-center gap-1.5">
-            {totalThumbs > 0 && (
-              <span className="text-[11px] text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>
-                {book.up_count > 0 && `${thumbsUpEmoji}${book.up_count}`}
-                {book.up_count > 0 && book.down_count > 0 && ' '}
-                {book.down_count > 0 && `${thumbsDownEmoji}${book.down_count}`}
+            {score !== null && (
+              <span
+                className="text-[11px] font-semibold tabular-nums bg-gray-100 text-gray-500 rounded-full px-1.5 py-0.5"
+                style={{ fontFamily: 'var(--font-nunito)' }}
+              >
+                {score}
               </span>
             )}
             {topReacts.length > 0 && (

@@ -94,6 +94,21 @@ export function runMigrations(db: Database.Database): void {
 
     CREATE INDEX IF NOT EXISTS idx_selection_votes_session ON book_selection_votes(session_id);
     CREATE INDEX IF NOT EXISTS idx_selection_votes_user    ON book_selection_votes(session_id, user_id);
+
+    CREATE TABLE IF NOT EXISTS reveal_sessions (
+      id              INTEGER PRIMARY KEY AUTOINCREMENT,
+      game_type       TEXT    NOT NULL DEFAULT 'wheel',
+      status          TEXT    NOT NULL DEFAULT 'lobby',
+      winner_book_id  INTEGER NOT NULL REFERENCES books(id),
+      seed            INTEGER NOT NULL,
+      books_json      TEXT    NOT NULL,
+      created_by      INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      created_at      INTEGER NOT NULL DEFAULT (unixepoch()),
+      started_at      INTEGER,
+      finished_at     INTEGER
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_reveal_sessions_status ON reveal_sessions(status);
   `);
 
   // Additive migrations (ALTER TABLE — use try/catch since SQLite has no ADD COLUMN IF NOT EXISTS)

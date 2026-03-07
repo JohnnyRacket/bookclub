@@ -6,6 +6,7 @@ import { getMySubmissions } from '@/lib/actions/submit';
 import { getMeetingSettings, getNextBookTheme } from '@/lib/actions/settings';
 import { getCustomReactions } from '@/lib/actions/reactions';
 import { getOpenVotingSession } from '@/lib/actions/book-selection';
+import { getActiveRevealSession } from '@/lib/actions/reveal-session';
 import { isAdmin, isPinlessMode } from '@/lib/actions/admin';
 import Image from 'next/image';
 import { ActionMenu } from '@/components/ActionMenu';
@@ -20,7 +21,7 @@ export default async function HomePage() {
   const session = await getSession();
   if (!session) redirect('/join');
 
-  const [currentBook, pastBooks, meetingSettings, mySubmissions, clubConfig, nextBookTheme, customReactions, openSession, adminResult, submittedBookCount, pinlessResult] = await Promise.all([
+  const [currentBook, pastBooks, meetingSettings, mySubmissions, clubConfig, nextBookTheme, customReactions, openSession, activeReveal, adminResult, submittedBookCount, pinlessResult] = await Promise.all([
     getCurrentBook(),
     getPastBooks(),
     getMeetingSettings(),
@@ -29,6 +30,7 @@ export default async function HomePage() {
     getNextBookTheme(),
     getCustomReactions(),
     getOpenVotingSession(),
+    getActiveRevealSession(),
     isAdmin(),
     getSubmittedBookCount(),
     isPinlessMode(),
@@ -77,7 +79,10 @@ export default async function HomePage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8 animate-page-in">
           {/* Current book — 2/3 width on desktop */}
           <div className="lg:col-span-2">
-            <VoteAlert initial={openSession?.status === 'open' ? { sessionId: openSession.id, status: openSession.status } : null} />
+            <VoteAlert
+              initialVote={openSession?.status === 'open' ? { sessionId: openSession.id, status: openSession.status } : null}
+              initialReveal={activeReveal?.status === 'lobby' ? { revealId: activeReveal.id, status: activeReveal.status } : null}
+            />
             <CurrentBookCard
               book={currentBook}
               emojis={clubConfig.emojiReactions}

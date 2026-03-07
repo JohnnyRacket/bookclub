@@ -23,7 +23,7 @@ export default async function AddReactionPage() {
           </Link>
         </div>
 
-        <div className="acnh-card p-6">
+        <div className="p-6">
           <h1
             className="text-2xl font-semibold mb-1"
             style={{ fontFamily: 'var(--font-fredoka)' }}

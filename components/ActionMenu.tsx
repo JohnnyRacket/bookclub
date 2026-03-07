@@ -6,6 +6,77 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { startVotingSession, startRandomSelection } from '@/lib/actions/book-selection';
 import { AdminPinModal } from '@/components/auth/AdminPinModal';
 
+const GAME_TYPES = [
+  { value: 'wheel', icon: '🎡', label: 'Spinning Wheel', desc: 'Classic wheel of fortune' },
+  { value: 'horse_race', icon: '🏇', label: 'Horse Race', desc: 'Books race to the finish' },
+  { value: 'battle', icon: '⚔️', label: 'Battle Royale', desc: '1v1 bracket elimination' },
+] as const;
+
+type GameType = 'wheel' | 'horse_race' | 'battle';
+
+function GamePickerModal({
+  open,
+  onClose,
+  onPick,
+  isPending,
+  error,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onPick: (type: GameType) => void;
+  isPending: boolean;
+  error: string | null;
+}) {
+  if (!open) return null;
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.35)' }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div
+        className="w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-page-in"
+        style={{ background: 'white', fontFamily: 'var(--font-nunito)' }}
+      >
+        <h2 className="text-xl font-bold mb-1 text-center" style={{ fontFamily: 'var(--font-fredoka)', color: 'var(--color-primary)' }}>
+          Choose the Game
+        </h2>
+        <p className="text-sm text-muted-foreground text-center mb-5" style={{ fontFamily: 'var(--font-nunito)' }}>
+          How should we pick the next book?
+        </p>
+        <div className="space-y-2">
+          {GAME_TYPES.map(({ value, icon, label, desc }) => (
+            <button
+              key={value}
+              onClick={() => onPick(value)}
+              disabled={isPending}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl border-2 text-left transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
+              style={{ borderColor: 'color-mix(in oklch, var(--color-primary) 30%, transparent)', background: 'color-mix(in oklch, var(--color-primary) 6%, white)' }}
+            >
+              <span className="text-3xl flex-shrink-0">{icon}</span>
+              <div>
+                <p className="font-bold text-sm" style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-fredoka)' }}>{label}</p>
+                <p className="text-xs text-muted-foreground">{desc}</p>
+              </div>
+            </button>
+          ))}
+        </div>
+        {error && (
+          <div className="mt-3 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700">
+            {error}
+          </div>
+        )}
+        <button
+          onClick={onClose}
+          className="mt-4 w-full py-2 rounded-xl text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function ActionMenu({
   atSubmissionCap,
   submissionCount,
@@ -25,6 +96,8 @@ export function ActionMenu({
 }) {
   const [open, setOpen] = useState(false);
   const [pinModalOpen, setPinModalOpen] = useState(false);
+  const [randomPinModalOpen, setRandomPinModalOpen] = useState(false);
+  const [gamePickerOpen, setGamePickerOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [voteError, setVoteError] = useState<string | null>(null);
   const [randomError, setRandomError] = useState<string | null>(null);
@@ -59,15 +132,25 @@ export function ActionMenu({
 
   function handleRandomPick() {
     setRandomError(null);
+    setOpen(false);
+    if (isAdmin) {
+      setGamePickerOpen(true);
+    } else {
+      setRandomPinModalOpen(true);
+    }
+  }
+
+  function doRandomPick(gameType: GameType) {
+    setRandomError(null);
     startTransition(async () => {
-      const res = await startRandomSelection();
+      const res = await startRandomSelection(gameType);
       if (res.error) {
         setRandomError(res.error);
       } else if (res.redirect) {
-        setOpen(false);
+        setGamePickerOpen(false);
         router.push(res.redirect);
       } else {
-        setOpen(false);
+        setGamePickerOpen(false);
         router.refresh();
       }
     });
@@ -130,7 +213,7 @@ export function ActionMenu({
             </button>
           )}
 
-          {selectionMode === 'random' && isAdmin && (
+          {selectionMode === 'random' && (
             <button
               onClick={handleRandomPick}
               disabled={isPending || submittedBookCount === 0}
@@ -166,7 +249,7 @@ export function ActionMenu({
             className="w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-white/70 transition-colors hover:bg-white/20 hover:text-white cursor-pointer"
             style={{ fontFamily: 'var(--font-nunito)' }}
           >
-            Elevate to Admin
+            Book Club Settings
           </button>
         </PopoverContent>
       </Popover>
@@ -177,6 +260,22 @@ export function ActionMenu({
         title="Start Book Vote"
         onClose={() => setPinModalOpen(false)}
         onSuccess={doStartVote}
+      />
+
+      <AdminPinModal
+        open={randomPinModalOpen}
+        pinless={isPinless}
+        title="Pick Random Book"
+        onClose={() => setRandomPinModalOpen(false)}
+        onSuccess={() => { setGamePickerOpen(true); }}
+      />
+
+      <GamePickerModal
+        open={gamePickerOpen}
+        onClose={() => setGamePickerOpen(false)}
+        onPick={doRandomPick}
+        isPending={isPending}
+        error={randomError}
       />
     </>
   );

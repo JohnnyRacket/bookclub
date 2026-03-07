@@ -83,7 +83,7 @@ export function AddReactionForm() {
       <button
         type="submit"
         disabled={isPending || !preview}
-        className="acnh-btn w-full py-3 rounded-2xl font-bold text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+        className="w-full py-3 rounded-2xl font-bold text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
         style={{ background: 'var(--color-primary)', fontFamily: 'var(--font-nunito)' }}
       >
         {isPending ? 'Uploading...' : 'Upload Reaction'}

@@ -1,6 +1,8 @@
 import { getSession } from '@/lib/auth/session';
 import { getOpenVotingSession } from '@/lib/actions/book-selection';
+import { getActiveRevealSession } from '@/lib/actions/reveal-session';
 import { onGlobalSessionChanged } from '@/lib/events/vote-session-emitter';
+import { onGlobalRevealChanged } from '@/lib/events/reveal-session-emitter';
 
 export async function GET(request: Request) {
   const session = await getSession();
@@ -24,14 +26,30 @@ export async function GET(request: Request) {
         } catch { /* DB errors shouldn't kill the stream */ }
       };
 
-      await sendStatus();
+      const sendRevealStatus = async () => {
+        try {
+          const reveal = await getActiveRevealSession();
+          const data = reveal && reveal.status === 'lobby'
+            ? { revealId: reveal.id, status: reveal.status }
+            : null;
+          enqueue(`event: reveal-status\ndata: ${JSON.stringify(data)}\n\n`);
+        } catch { /* DB errors shouldn't kill the stream */ }
+      };
 
-      const unsub = onGlobalSessionChanged(sendStatus);
-      const interval = setInterval(sendStatus, 30_000);
+      await sendStatus();
+      await sendRevealStatus();
+
+      const unsubVote = onGlobalSessionChanged(sendStatus);
+      const unsubReveal = onGlobalRevealChanged(sendRevealStatus);
+      const interval = setInterval(async () => {
+        await sendStatus();
+        await sendRevealStatus();
+      }, 30_000);
 
       request.signal.addEventListener('abort', () => {
         clearInterval(interval);
-        unsub();
+        unsubVote();
+        unsubReveal();
         try { controller.close(); } catch { /* already closed */ }
       });
     },

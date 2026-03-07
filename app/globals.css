@@ -156,3 +156,36 @@
 .stagger > *:nth-child(4) { animation-delay: 0.22s; }
 .stagger > *:nth-child(5) { animation-delay: 0.28s; }
 .stagger > *:nth-child(6) { animation-delay: 0.34s; }
+
+/* Game animations */
+@keyframes confettiFall {
+  0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+@keyframes battleDisintegrate {
+  0%   { transform: scale(1) rotate(0deg); opacity: 1; }
+  30%  { transform: scale(1.15) rotate(-8deg); opacity: 0.9; }
+  100% { transform: scale(0) rotate(45deg) translateY(-30px); opacity: 0; }
+}
+
+@keyframes battleVictory {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.25) rotate(-3deg); }
+  70%  { transform: scale(0.95) rotate(2deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+@keyframes battleCountdownPop {
+  0%   { transform: scale(0.4); opacity: 0; }
+  60%  { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes battleShake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-6px) rotate(-1deg); }
+  40%       { transform: translateX(6px) rotate(1deg); }
+  60%       { transform: translateX(-4px); }
+  80%       { transform: translateX(4px); }
+}

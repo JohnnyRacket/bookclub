@@ -81,6 +81,19 @@ export interface BookSelectionVotesTable {
   created_at: Generated<number>;
 }
 
+export interface RevealSessionsTable {
+  id: Generated<number>;
+  game_type: string; // 'wheel' | 'horse_race' | 'battle'
+  status: string;    // 'lobby' | 'playing' | 'finished' | 'finalized'
+  winner_book_id: number;
+  seed: number;
+  books_json: string; // JSON: [{id, title, author, cover_url, submitter_name}]
+  created_by: number | null;
+  created_at: Generated<number>;
+  started_at: number | null;
+  finished_at: number | null;
+}
+
 export interface DB {
   users: UsersTable;
   sessions: SessionsTable;
@@ -92,6 +105,7 @@ export interface DB {
   custom_reactions: CustomReactionsTable;
   book_selection_sessions: BookSelectionSessionsTable;
   book_selection_votes: BookSelectionVotesTable;
+  reveal_sessions: RevealSessionsTable;
 }
 
 export type User = Selectable<UsersTable>;

@@ -958,7 +958,7 @@ function ClubSettingsEditor({ settings, hasAdminPin }: { settings: ClubConfig; h
         {selectionMode === "random" && (
           <div className="flex items-center justify-between gap-3">
             <span className="text-sm text-foreground" style={{ fontFamily: "var(--font-nunito)" }}>
-              Reveal page (wheel animation)
+              Animated reveal show
             </span>
             <Switch size="lg" checked={randomReveal} onCheckedChange={setRandomReveal} />
             <input type="hidden" name="random_reveal" value={randomReveal ? "1" : "0"} />
