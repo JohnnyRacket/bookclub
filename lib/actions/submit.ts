@@ -134,6 +134,8 @@ export async function deleteMySubmission(bookId: number): Promise<{ error?: stri
     return { error: 'Not found or not authorized' };
   }
 
+  // reveal_sessions.winner_book_id has no ON DELETE action, so delete referencing sessions first
+  await db.deleteFrom('reveal_sessions').where('winner_book_id', '=', bookId).execute();
   await db.deleteFrom('books').where('id', '=', bookId).execute();
   revalidatePath('/my-submissions');
   revalidatePath('/');
