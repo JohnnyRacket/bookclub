@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-export function ThemeCard({ theme }: { theme: string | null }) {
+export function ThemeCard({ theme, atSubmissionCap }: { theme: string | null; atSubmissionCap?: boolean }) {
   return (
     <div
       className="rounded-2xl p-5"
@@ -26,12 +26,21 @@ export function ThemeCard({ theme }: { theme: string | null }) {
       </div>
 
       {theme ? (
-        <p
-          className="text-lg font-semibold text-foreground leading-snug"
-          style={{ fontFamily: 'var(--font-fredoka)' }}
-        >
-          {theme}
-        </p>
+        <>
+          <p
+            className="text-lg font-semibold text-foreground leading-snug"
+            style={{ fontFamily: 'var(--font-fredoka)' }}
+          >
+            {theme}
+          </p>
+          <Link
+            href={atSubmissionCap ? '/my-submissions' : '/submit'}
+            className="mt-2 inline-block text-xs font-semibold underline underline-offset-2 hover:no-underline"
+            style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-nunito)' }}
+          >
+            {atSubmissionCap ? 'View my submissions' : 'Submit a book'}
+          </Link>
+        </>
       ) : (
         <p className="text-sm text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>
           No theme set yet.{' '}

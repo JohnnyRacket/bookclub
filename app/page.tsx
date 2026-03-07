@@ -98,7 +98,7 @@ export default async function HomePage() {
             {meetingSettings.nextMeetingAt && (
               <CountdownCard nextMeetingAt={meetingSettings.nextMeetingAt} />
             )}
-            <ThemeCard theme={nextBookTheme} />
+            <ThemeCard theme={nextBookTheme} atSubmissionCap={atSubmissionCap} />
           </div>
         </div>
 
