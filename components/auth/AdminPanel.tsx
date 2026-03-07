@@ -687,6 +687,7 @@ function ClubSettingsEditor({ settings, hasAdminPin }: { settings: ClubConfig; h
   const [randomReveal, setRandomReveal] = useState(settings.randomReveal);
   const [purgeAfterSelection, setPurgeAfterSelection] = useState(settings.purgeAfterSelection);
   const [pinlessAdmin, setPinlessAdmin] = useState(settings.pinlessAdmin);
+  const [bookFavicon, setBookFavicon] = useState(settings.bookFavicon);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -1010,6 +1011,19 @@ function ClubSettingsEditor({ settings, hasAdminPin }: { settings: ClubConfig; h
           </div>
           <Switch size="lg" checked={pinlessAdmin} onCheckedChange={setPinlessAdmin} />
           <input type="hidden" name="pinless_admin" value={pinlessAdmin ? "1" : "0"} />
+        </div>
+
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <span className="text-sm text-foreground" style={{ fontFamily: "var(--font-nunito)" }}>
+              Use current book as favicon
+            </span>
+            <p className="text-xs text-muted-foreground mt-0.5" style={{ fontFamily: "var(--font-nunito)" }}>
+              Shows the current book cover in the browser tab
+            </p>
+          </div>
+          <Switch size="lg" checked={bookFavicon} onCheckedChange={setBookFavicon} />
+          <input type="hidden" name="book_favicon" value={bookFavicon ? "1" : "0"} />
         </div>
 
         {status === "error" && errorMsg && (

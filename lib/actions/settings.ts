@@ -26,6 +26,7 @@ export type ClubConfig = {
   voteStartAdminOnly: boolean;
   purgeAfterSelection: boolean;
   pinlessAdmin: boolean;
+  bookFavicon: boolean;
 };
 
 const CONFIG_KEYS = [
@@ -42,6 +43,7 @@ const CONFIG_KEYS = [
   'vote_start_admin_only',
   'purge_after_selection',
   'pinless_admin',
+  'book_favicon',
 ] as const;
 
 export async function getMeetingSettings(): Promise<MeetingSettings> {
@@ -94,6 +96,7 @@ export async function getClubConfig(): Promise<ClubConfig> {
     voteStartAdminOnly: map.get('vote_start_admin_only') === '1',
     purgeAfterSelection: map.get('purge_after_selection') !== '0',
     pinlessAdmin: map.get('pinless_admin') === '1',
+    bookFavicon: map.get('book_favicon') === '1',
   };
 }
 
@@ -114,6 +117,7 @@ export async function updateClubConfig(
     ['vote_start_admin_only', formData.get('vote_start_admin_only') === '1' ? '1' : '0'],
     ['purge_after_selection', formData.get('purge_after_selection') === '1' ? '1' : '0'],
     ['pinless_admin', formData.get('pinless_admin') === '1' ? '1' : '0'],
+    ['book_favicon', formData.get('book_favicon') === '1' ? '1' : '0'],
   ];
 
   for (const [key, value] of fields) {
@@ -154,6 +158,7 @@ export async function updateClubConfig(
   revalidatePath('/admin');
   revalidatePath('/submit');
   revalidatePath('/select-book/vote');
+  revalidatePath('/icon');
   return { success: true };
 }
 
