@@ -40,6 +40,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# sqlite database
+*.db*
+
 # downloaded/uploaded book cover images
 /public/covers/*
 !/public/covers/.gitkeep
