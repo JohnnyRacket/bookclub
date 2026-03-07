@@ -101,12 +101,13 @@ export function SpinWheel({ books, winnerId, seed, onComplete }: GameProps) {
     // extraSpins MUST be an integer so extraSpins * 2π ≡ 0 (mod 2π) and doesn't
     // shift the landing angle. A fractional spin count would offset the winner.
     const extraSpins = 5 + Math.floor(rng() * 3); // 5, 6, or 7 whole rotations
-    // Land pointer (at top = -PI/2) on center of winner segment.
-    // Winner segment center: angle + winnerIndex * segAngle - PI/2 + segAngle/2
-    // We want that to equal -PI/2, so: angle = -winnerIndex * segAngle - segAngle/2
-    const targetAngle = -winnerIndex * segAngle - segAngle / 2;
-    const totalRotation = extraSpins * 2 * Math.PI + targetAngle;
     const duration = 7000 + rng() * 2000; // 7–9s
+    // Add a random offset within the winner's segment for close-call drama.
+    // Stays within ±42% of the segment half-width so it never crosses the boundary.
+    const jitter = (rng() - 0.5) * segAngle * 0.85;
+    // Land pointer (at top = -PI/2) on winner segment center + jitter.
+    const targetAngle = -winnerIndex * segAngle - segAngle / 2 + jitter;
+    const totalRotation = extraSpins * 2 * Math.PI + targetAngle;
 
     const startTime = performance.now();
     let startAngle = 0;
