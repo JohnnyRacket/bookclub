@@ -59,7 +59,7 @@ export default async function Icon() {
       width: 32,
       height: 32,
       borderRadius: '50%',
-      background: 'oklch(0.68 0.18 140)',
+      background: '#52b452',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
