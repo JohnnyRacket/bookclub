@@ -104,7 +104,7 @@ export default async function PastReadsPage() {
                 </div>
 
                 {/* Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 p-2">
                   {byYear.get(year)!.map(book => (
                     <div key={book.id} className="flex justify-center">
                       <PastBookCard

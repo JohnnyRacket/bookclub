@@ -122,7 +122,7 @@ export default async function HomePage() {
             )}
           </div>
           <div className="w-16 h-0.5 rounded-full mb-4" style={{ background: 'color-mix(in oklch, var(--color-primary) 45%, transparent)' }} />
-          <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4">
+          <div className="flex gap-4 overflow-x-auto pb-8 pt-2 -mx-4 px-4 -mt-2">
             {pastBooks.length > 0 ? (
               pastBooks.slice(0, 12).map(book => (
                 <PastBookCard
