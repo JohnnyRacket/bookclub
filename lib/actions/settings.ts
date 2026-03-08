@@ -155,6 +155,8 @@ export async function updateClubConfig(
   }
 
   revalidatePath('/');
+  revalidatePath('/enter');
+  revalidatePath('/join');
   revalidatePath('/admin');
   revalidatePath('/submit');
   revalidatePath('/select-book/vote');

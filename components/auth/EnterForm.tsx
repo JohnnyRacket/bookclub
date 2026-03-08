@@ -5,8 +5,6 @@ import { enterClub } from '@/lib/actions/enter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import Image from 'next/image';
-
 interface EnterFormProps {
   clubName: string;
   logoUrl?: string | null;
@@ -21,8 +19,9 @@ export function EnterForm({ clubName, logoUrl }: EnterFormProps) {
       <div className="mb-6 stagger">
         {logoUrl ? (
           <div className="mb-4 flex justify-center">
-            <div className="relative h-14 w-14 overflow-hidden rounded-2xl">
-              <Image src={logoUrl} alt={clubName} fill className="object-contain" />
+            <div className="h-14 w-14 overflow-hidden rounded-2xl">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={logoUrl} alt={clubName} className="h-full w-full object-contain" />
             </div>
           </div>
         ) : (
