@@ -17,7 +17,6 @@ async function imageResponseFromPath(filePath: string) {
     : 'image/png'
   const dataUrl = `data:${mime};base64,${buffer.toString('base64')}`
   return new ImageResponse(
-    // @ts-expect-error JSX in .tsx with next/og
     <img src={dataUrl} style={{ width: 32, height: 32, objectFit: 'contain' }} />,
     { ...size }
   )
@@ -56,7 +55,6 @@ export default async function Icon() {
 
   // Default: green circle
   return new ImageResponse(
-    // @ts-expect-error JSX in .tsx with next/og
     <div style={{
       width: 32,
       height: 32,
