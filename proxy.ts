@@ -8,7 +8,7 @@ const MAX_AGE = 60 * 60 * 24 * 90;
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)).*)',
+    '/((?!_next/static|_next/image|favicon.ico|covers/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)).*)',
   ],
 };
 
