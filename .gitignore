@@ -45,4 +45,5 @@ next-env.d.ts
 
 # downloaded/uploaded book cover images
 /public/covers/*
+/public/reactions/*
 !/public/covers/.gitkeep
