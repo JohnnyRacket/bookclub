@@ -1438,6 +1438,36 @@ export function AdminPanel({
           </div>
           <span className="text-muted-foreground text-sm">→</span>
         </Link>
+
+        <Link
+          href="/admin/backup"
+          className="flex items-center gap-4 bg-white rounded-2xl shadow-[var(--shadow-card-sm)] px-5 py-4 hover:shadow-md transition-shadow"
+        >
+          <div
+            className="h-10 w-10 rounded-2xl flex-shrink-0 flex items-center justify-center text-lg"
+            style={{
+              background:
+                "color-mix(in oklch, var(--color-primary) 12%, white)",
+            }}
+          >
+            💾
+          </div>
+          <div className="min-w-0 flex-1">
+            <p
+              className="text-sm font-semibold text-foreground"
+              style={{ fontFamily: "var(--font-fredoka)" }}
+            >
+              Backup & Restore
+            </p>
+            <p
+              className="text-xs text-muted-foreground"
+              style={{ fontFamily: "var(--font-nunito)" }}
+            >
+              Export a ZIP of your club data and images, or restore from a backup
+            </p>
+          </div>
+          <span className="text-muted-foreground text-sm">→</span>
+        </Link>
       </div>
 
       {/* Custom Reactions */}
