@@ -24,7 +24,7 @@ export function PastBookCard({ book, thumbsUpEmoji, thumbsDownEmoji }: PastBookC
         className="flex flex-col flex-shrink-0 w-36 bg-white rounded-2xl shadow-[var(--shadow-card-sm)] overflow-hidden text-left hover:shadow-[var(--shadow-float)] hover:-translate-y-0.5 transition-all cursor-pointer"
       >
         {/* Cover */}
-        <div className="relative h-44 bg-gray-100">
+        <div className="relative w-full h-44 bg-gray-100">
           {book.cover_url ? (
             <div
               className="w-full h-full"
