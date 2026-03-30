@@ -3,15 +3,19 @@
 import { useState } from 'react';
 import { PastBookModal } from './PastBookModal';
 import type { BookWithStats } from '@/lib/actions/books';
+import type { CustomReaction } from '@/lib/actions/reactions';
 
 interface PastBookCardProps {
   book: BookWithStats;
   thumbsUpEmoji: string;
   thumbsDownEmoji: string;
   ratingMode: 'thumbs' | 'stars';
+  unlocked?: boolean;
+  emojis?: string[];
+  customReactions?: CustomReaction[];
 }
 
-export function PastBookCard({ book, thumbsUpEmoji, thumbsDownEmoji, ratingMode }: PastBookCardProps) {
+export function PastBookCard({ book, thumbsUpEmoji, thumbsDownEmoji, ratingMode, unlocked, emojis, customReactions }: PastBookCardProps) {
   const [open, setOpen] = useState(false);
 
   const totalThumbs = book.up_count + book.down_count;
@@ -95,6 +99,9 @@ export function PastBookCard({ book, thumbsUpEmoji, thumbsDownEmoji, ratingMode 
         thumbsUpEmoji={thumbsUpEmoji}
         thumbsDownEmoji={thumbsDownEmoji}
         ratingMode={ratingMode}
+        unlocked={unlocked}
+        emojis={emojis}
+        customReactions={customReactions}
       />
     </>
   );

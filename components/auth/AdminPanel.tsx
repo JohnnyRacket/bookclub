@@ -688,6 +688,7 @@ function ClubSettingsEditor({ settings, hasAdminPin }: { settings: ClubConfig; h
   const [purgeAfterSelection, setPurgeAfterSelection] = useState(settings.purgeAfterSelection);
   const [pinlessAdmin, setPinlessAdmin] = useState(settings.pinlessAdmin);
   const [bookFavicon, setBookFavicon] = useState(settings.bookFavicon);
+  const [unlockPastBooks, setUnlockPastBooks] = useState(settings.unlockPastBooks);
   const [ratingMode, setRatingMode] = useState(settings.ratingMode);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -1050,6 +1051,19 @@ function ClubSettingsEditor({ settings, hasAdminPin }: { settings: ClubConfig; h
           </div>
           <Switch size="lg" checked={bookFavicon} onCheckedChange={setBookFavicon} />
           <input type="hidden" name="book_favicon" value={bookFavicon ? "1" : "0"} />
+        </div>
+
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <span className="text-sm text-foreground" style={{ fontFamily: "var(--font-nunito)" }}>
+              Unlock past books for ratings & reactions
+            </span>
+            <p className="text-xs text-muted-foreground mt-0.5" style={{ fontFamily: "var(--font-nunito)" }}>
+              Let members rate and react to books they&apos;ve already read
+            </p>
+          </div>
+          <Switch size="lg" checked={unlockPastBooks} onCheckedChange={setUnlockPastBooks} />
+          <input type="hidden" name="unlock_past_books" value={unlockPastBooks ? "1" : "0"} />
         </div>
 
         {status === "error" && errorMsg && (

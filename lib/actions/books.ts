@@ -5,6 +5,15 @@ import { getSession } from '@/lib/auth/session';
 import { revalidatePath } from 'next/cache';
 import { notifyBookStatsChanged } from '@/lib/events/book-stats-emitter';
 
+async function isPastBooksUnlocked(): Promise<boolean> {
+  const row = await db
+    .selectFrom('club_settings')
+    .select('value')
+    .where('key', '=', 'unlock_past_books')
+    .executeTakeFirst();
+  return row?.value === '1';
+}
+
 export type BookReact = {
   emoji: string;
   count: number;
@@ -177,7 +186,7 @@ export async function thumbBook(bookId: number, value: 1 | -1): Promise<void> {
     .select('status')
     .where('id', '=', bookId)
     .executeTakeFirst();
-  if (!book || book.status !== 'current') throw new Error('Book not available for voting');
+  if (!book || (book.status !== 'current' && !(book.status === 'past' && await isPastBooksUnlocked()))) throw new Error('Book not available for voting');
 
   const existing = await db
     .selectFrom('book_thumbs')
@@ -230,7 +239,7 @@ export async function starBook(bookId: number, value: number): Promise<void> {
     .select('status')
     .where('id', '=', bookId)
     .executeTakeFirst();
-  if (!book || book.status !== 'current') throw new Error('Book not available for rating');
+  if (!book || (book.status !== 'current' && !(book.status === 'past' && await isPastBooksUnlocked()))) throw new Error('Book not available for rating');
 
   const existing = await db
     .selectFrom('book_stars')
@@ -279,7 +288,7 @@ export async function reactBook(bookId: number, emoji: string): Promise<void> {
     .select('status')
     .where('id', '=', bookId)
     .executeTakeFirst();
-  if (!book || book.status !== 'current') throw new Error('Book not available for reacting');
+  if (!book || (book.status !== 'current' && !(book.status === 'past' && await isPastBooksUnlocked()))) throw new Error('Book not available for reacting');
 
   const existing = await db
     .selectFrom('book_reacts')

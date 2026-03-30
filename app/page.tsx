@@ -132,6 +132,9 @@ export default async function HomePage() {
                   thumbsUpEmoji={clubConfig.thumbsUpEmoji}
                   thumbsDownEmoji={clubConfig.thumbsDownEmoji}
                   ratingMode={clubConfig.ratingMode}
+                  unlocked={clubConfig.unlockPastBooks}
+                  emojis={clubConfig.emojiReactions}
+                  customReactions={customReactions}
                 />
               ))
             ) : (

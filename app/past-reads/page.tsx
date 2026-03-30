@@ -2,15 +2,17 @@ import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth/session';
 import { getClubConfig } from '@/lib/actions/settings';
 import { getPastBooks } from '@/lib/actions/books';
+import { getCustomReactions } from '@/lib/actions/reactions';
 import { PastBookCard } from '@/components/books/PastBookCard';
 
 export default async function PastReadsPage() {
   const session = await getSession();
   if (!session) redirect('/join');
 
-  const [pastBooks, clubConfig] = await Promise.all([
+  const [pastBooks, clubConfig, customReactions] = await Promise.all([
     getPastBooks(),
     getClubConfig(),
+    getCustomReactions(),
   ]);
 
   // Group by year derived from archived_at (Unix seconds)
@@ -112,6 +114,9 @@ export default async function PastReadsPage() {
                         thumbsUpEmoji={clubConfig.thumbsUpEmoji}
                         thumbsDownEmoji={clubConfig.thumbsDownEmoji}
                         ratingMode={clubConfig.ratingMode}
+                        unlocked={clubConfig.unlockPastBooks}
+                        emojis={clubConfig.emojiReactions}
+                        customReactions={customReactions}
                       />
                     </div>
                   ))}

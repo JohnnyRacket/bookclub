@@ -4,6 +4,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { BookRating } from './BookRating';
 import { BookReacts } from './BookReacts';
 import type { BookWithStats } from '@/lib/actions/books';
+import type { CustomReaction } from '@/lib/actions/reactions';
 
 interface PastBookModalProps {
   book: BookWithStats;
@@ -12,9 +13,12 @@ interface PastBookModalProps {
   thumbsUpEmoji: string;
   thumbsDownEmoji: string;
   ratingMode: 'thumbs' | 'stars';
+  unlocked?: boolean;
+  emojis?: string[];
+  customReactions?: CustomReaction[];
 }
 
-export function PastBookModal({ book, open, onOpenChange, thumbsUpEmoji, thumbsDownEmoji, ratingMode }: PastBookModalProps) {
+export function PastBookModal({ book, open, onOpenChange, thumbsUpEmoji, thumbsDownEmoji, ratingMode, unlocked, emojis, customReactions }: PastBookModalProps) {
   const genres: string[] = book.genres ? JSON.parse(book.genres) : [];
 
   return (
@@ -47,7 +51,7 @@ export function PastBookModal({ book, open, onOpenChange, thumbsUpEmoji, thumbsD
                 starAvg={book.star_avg}
                 starCount={book.star_count}
                 userStar={book.user_star}
-                locked={true}
+                locked={!unlocked}
                 upEmoji={thumbsUpEmoji}
                 downEmoji={thumbsDownEmoji}
               />
@@ -107,14 +111,17 @@ export function PastBookModal({ book, open, onOpenChange, thumbsUpEmoji, thumbsD
         </div>
 
         <div className="px-6 pb-6 pt-2 space-y-2.5 border-t border-gray-50">
-          <p className="text-xs text-muted-foreground mb-2" style={{ fontFamily: 'var(--font-nunito)' }}>
-            Reactions are locked for past books
-          </p>
+          {!unlocked && (
+            <p className="text-xs text-muted-foreground mb-2" style={{ fontFamily: 'var(--font-nunito)' }}>
+              Reactions are locked for past books
+            </p>
+          )}
           <BookReacts
             bookId={book.id}
             reacts={book.reacts}
-            locked={true}
-            emojis={[]}
+            locked={!unlocked}
+            emojis={unlocked ? (emojis ?? []) : []}
+            customReactions={unlocked ? customReactions : undefined}
           />
         </div>
       </DialogContent>
