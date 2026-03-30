@@ -46,6 +46,13 @@ export interface BookReactsTable {
   created_at: number;
 }
 
+export interface BookStarsTable {
+  book_id: number;
+  user_id: number;
+  value: number; // 0.5 to 5.0 in 0.5 increments
+  created_at: number;
+}
+
 export interface OlCacheTable {
   cache_key: string;
   data: string; // JSON
@@ -100,6 +107,7 @@ export interface DB {
   books: BooksTable;
   book_thumbs: BookThumbsTable;
   book_reacts: BookReactsTable;
+  book_stars: BookStarsTable;
   ol_cache: OlCacheTable;
   club_settings: ClubSettingsTable;
   custom_reactions: CustomReactionsTable;

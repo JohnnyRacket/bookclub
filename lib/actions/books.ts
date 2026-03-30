@@ -30,6 +30,9 @@ export type BookWithStats = {
   up_count: number;
   down_count: number;
   user_thumb: 1 | -1 | null;
+  star_avg: number | null;
+  star_count: number;
+  user_star: number | null;
   reacts: BookReact[];
 };
 
@@ -56,6 +59,27 @@ export async function getBookStats(bookId: number, userId: number | null) {
       .where('user_id', '=', userId)
       .executeTakeFirst();
     user_thumb = utRow ? (utRow.value as 1 | -1) : null;
+  }
+
+  // Star ratings
+  const starAgg = await db
+    .selectFrom('book_stars')
+    .select([db.fn.avg<number>('value').as('avg'), db.fn.count<number>('user_id').as('cnt')])
+    .where('book_id', '=', bookId)
+    .executeTakeFirst();
+
+  const star_avg = starAgg?.avg != null ? Math.round(Number(starAgg.avg) * 10) / 10 : null;
+  const star_count = Number(starAgg?.cnt ?? 0);
+
+  let user_star: number | null = null;
+  if (userId) {
+    const usRow = await db
+      .selectFrom('book_stars')
+      .select('value')
+      .where('book_id', '=', bookId)
+      .where('user_id', '=', userId)
+      .executeTakeFirst();
+    user_star = usRow ? Number(usRow.value) : null;
   }
 
   // Fetch all reacts with reactor names in one join query, oldest first
@@ -85,7 +109,7 @@ export async function getBookStats(bookId: number, userId: number | null) {
     };
   });
 
-  return { up_count, down_count, user_thumb, reacts };
+  return { up_count, down_count, user_thumb, star_avg, star_count, user_star, reacts };
 }
 
 function bookBaseQuery(status: string) {
@@ -180,6 +204,59 @@ export async function thumbBook(bookId: number, value: 1 | -1): Promise<void> {
   } else {
     await db
       .insertInto('book_thumbs')
+      .values({
+        book_id: bookId,
+        user_id: session.userId,
+        value,
+        created_at: Math.floor(Date.now() / 1000),
+      })
+      .execute();
+  }
+
+  notifyBookStatsChanged(bookId);
+  revalidatePath('/');
+}
+
+export async function starBook(bookId: number, value: number): Promise<void> {
+  const session = await getSession();
+  if (!session) throw new Error('Not authenticated');
+
+  if (value < 0.5 || value > 5 || (value * 2) % 1 !== 0) {
+    throw new Error('Invalid star rating');
+  }
+
+  const book = await db
+    .selectFrom('books')
+    .select('status')
+    .where('id', '=', bookId)
+    .executeTakeFirst();
+  if (!book || book.status !== 'current') throw new Error('Book not available for rating');
+
+  const existing = await db
+    .selectFrom('book_stars')
+    .select('value')
+    .where('book_id', '=', bookId)
+    .where('user_id', '=', session.userId)
+    .executeTakeFirst();
+
+  if (existing) {
+    if (Number(existing.value) === value) {
+      await db
+        .deleteFrom('book_stars')
+        .where('book_id', '=', bookId)
+        .where('user_id', '=', session.userId)
+        .execute();
+    } else {
+      await db
+        .updateTable('book_stars')
+        .set({ value })
+        .where('book_id', '=', bookId)
+        .where('user_id', '=', session.userId)
+        .execute();
+    }
+  } else {
+    await db
+      .insertInto('book_stars')
       .values({
         book_id: bookId,
         user_id: session.userId,

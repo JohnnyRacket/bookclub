@@ -109,6 +109,16 @@ export function runMigrations(db: Database.Database): void {
     );
 
     CREATE INDEX IF NOT EXISTS idx_reveal_sessions_status ON reveal_sessions(status);
+
+    CREATE TABLE IF NOT EXISTS book_stars (
+      book_id    INTEGER NOT NULL REFERENCES books(id) ON DELETE CASCADE,
+      user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      value      REAL    NOT NULL CHECK(value >= 0.5 AND value <= 5.0),
+      created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+      PRIMARY KEY (book_id, user_id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_book_stars_book ON book_stars(book_id);
   `);
 
   // Additive migrations (ALTER TABLE — use try/catch since SQLite has no ADD COLUMN IF NOT EXISTS)

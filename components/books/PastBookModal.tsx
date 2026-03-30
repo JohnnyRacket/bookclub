@@ -1,7 +1,7 @@
 'use client';
 
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { BookThumbs } from './BookThumbs';
+import { BookRating } from './BookRating';
 import { BookReacts } from './BookReacts';
 import type { BookWithStats } from '@/lib/actions/books';
 
@@ -11,9 +11,10 @@ interface PastBookModalProps {
   onOpenChange: (open: boolean) => void;
   thumbsUpEmoji: string;
   thumbsDownEmoji: string;
+  ratingMode: 'thumbs' | 'stars';
 }
 
-export function PastBookModal({ book, open, onOpenChange, thumbsUpEmoji, thumbsDownEmoji }: PastBookModalProps) {
+export function PastBookModal({ book, open, onOpenChange, thumbsUpEmoji, thumbsDownEmoji, ratingMode }: PastBookModalProps) {
   const genres: string[] = book.genres ? JSON.parse(book.genres) : [];
 
   return (
@@ -37,11 +38,15 @@ export function PastBookModal({ book, open, onOpenChange, thumbsUpEmoji, thumbsD
                   📖
                 </div>
               )}
-              <BookThumbs
+              <BookRating
+                ratingMode={ratingMode}
                 bookId={book.id}
                 upCount={book.up_count}
                 downCount={book.down_count}
                 userThumb={book.user_thumb}
+                starAvg={book.star_avg}
+                starCount={book.star_count}
+                userStar={book.user_star}
                 locked={true}
                 upEmoji={thumbsUpEmoji}
                 downEmoji={thumbsDownEmoji}

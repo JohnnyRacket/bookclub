@@ -688,6 +688,7 @@ function ClubSettingsEditor({ settings, hasAdminPin }: { settings: ClubConfig; h
   const [purgeAfterSelection, setPurgeAfterSelection] = useState(settings.purgeAfterSelection);
   const [pinlessAdmin, setPinlessAdmin] = useState(settings.pinlessAdmin);
   const [bookFavicon, setBookFavicon] = useState(settings.bookFavicon);
+  const [ratingMode, setRatingMode] = useState(settings.ratingMode);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -858,7 +859,31 @@ function ClubSettingsEditor({ settings, hasAdminPin }: { settings: ClubConfig; h
           )}
         </div>
 
+        {/* Rating Mode */}
+        <div>
+          <label
+            className="block text-xs font-semibold mb-1.5 text-muted-foreground uppercase tracking-wide"
+            style={{ fontFamily: "var(--font-nunito)" }}
+          >
+            Rating Mode
+          </label>
+          <Select
+            value={ratingMode}
+            onValueChange={(v) => setRatingMode(v as typeof ratingMode)}
+            name="rating_mode"
+          >
+            <SelectTrigger className="w-full" style={{ fontFamily: "var(--font-nunito)" }}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="thumbs">Thumbs Up / Down</SelectItem>
+              <SelectItem value="stars">Star Rating (0.5–5)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         {/* Thumbs emojis */}
+        {ratingMode === "thumbs" && (
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label
@@ -891,6 +916,7 @@ function ClubSettingsEditor({ settings, hasAdminPin }: { settings: ClubConfig; h
             />
           </div>
         </div>
+        )}
 
         {/* Max Submissions */}
         <div>

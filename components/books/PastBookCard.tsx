@@ -8,13 +8,22 @@ interface PastBookCardProps {
   book: BookWithStats;
   thumbsUpEmoji: string;
   thumbsDownEmoji: string;
+  ratingMode: 'thumbs' | 'stars';
 }
 
-export function PastBookCard({ book, thumbsUpEmoji, thumbsDownEmoji }: PastBookCardProps) {
+export function PastBookCard({ book, thumbsUpEmoji, thumbsDownEmoji, ratingMode }: PastBookCardProps) {
   const [open, setOpen] = useState(false);
 
   const totalThumbs = book.up_count + book.down_count;
-  const score = totalThumbs === 0 ? null : `${Math.round((book.up_count / totalThumbs) * 100)}%`;
+  const thumbsScore = totalThumbs === 0 ? null : `${Math.round((book.up_count / totalThumbs) * 100)}%`;
+  const starScore = book.star_avg != null
+    ? book.star_avg
+    : totalThumbs > 0
+      ? Math.round((book.up_count / totalThumbs) * 5 * 10) / 10
+      : null;
+  const score = ratingMode === 'stars'
+    ? (starScore !== null ? `${starScore.toFixed(1)}\u2605` : null)
+    : thumbsScore;
   const topReacts = book.reacts.filter(r => r.count > 0).slice(0, 3);
 
   return (
@@ -85,6 +94,7 @@ export function PastBookCard({ book, thumbsUpEmoji, thumbsDownEmoji }: PastBookC
         onOpenChange={setOpen}
         thumbsUpEmoji={thumbsUpEmoji}
         thumbsDownEmoji={thumbsDownEmoji}
+        ratingMode={ratingMode}
       />
     </>
   );

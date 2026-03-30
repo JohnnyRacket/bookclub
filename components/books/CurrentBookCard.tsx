@@ -1,6 +1,6 @@
 'use client';
 
-import { BookThumbs } from './BookThumbs';
+import { BookRating } from './BookRating';
 import { BookReacts } from './BookReacts';
 import type { BookWithStats } from '@/lib/actions/books';
 import type { CustomReaction } from '@/lib/actions/reactions';
@@ -13,14 +13,18 @@ interface CurrentBookCardProps {
   thumbsUpEmoji: string;
   thumbsDownEmoji: string;
   customReactions?: CustomReaction[];
+  ratingMode: 'thumbs' | 'stars';
 }
 
-export function CurrentBookCard({ book, emojis, thumbsUpEmoji, thumbsDownEmoji, customReactions }: CurrentBookCardProps) {
+export function CurrentBookCard({ book, emojis, thumbsUpEmoji, thumbsDownEmoji, customReactions, ratingMode }: CurrentBookCardProps) {
   const liveStats = useBookStats(book?.id ?? 0, {
     reacts: book?.reacts ?? [],
     up_count: book?.up_count ?? 0,
     down_count: book?.down_count ?? 0,
     user_thumb: book?.user_thumb ?? null,
+    star_avg: book?.star_avg ?? null,
+    star_count: book?.star_count ?? 0,
+    user_star: book?.user_star ?? null,
   });
 
   if (!book) {
@@ -84,37 +88,19 @@ export function CurrentBookCard({ book, emojis, thumbsUpEmoji, thumbsDownEmoji, 
                 📖
               </div>
             )}
-            <BookThumbs
+            <BookRating
+              ratingMode={ratingMode}
               bookId={book.id}
               upCount={liveStats.up_count}
               downCount={liveStats.down_count}
               userThumb={liveStats.user_thumb}
+              starAvg={liveStats.star_avg}
+              starCount={liveStats.star_count}
+              userStar={liveStats.user_star}
               locked={false}
               upEmoji={thumbsUpEmoji}
               downEmoji={thumbsDownEmoji}
             />
-            {/* Mobile-only: theme + suggested by directly under voting buttons */}
-            {(book.theme || book.submitter_name) && (
-              <div className="sm:hidden flex flex-col items-start gap-1">
-                {book.theme && (
-                  <span
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold"
-                    style={{
-                      color: 'var(--color-primary)',
-                      fontFamily: 'var(--font-nunito)',
-                    }}
-                  >
-                    <Sparkles size={12} />
-                    {book.theme}
-                  </span>
-                )}
-                {book.submitter_name && (
-                  <p className="text-xs text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>
-                    Suggested by {book.submitter_name}
-                  </p>
-                )}
-              </div>
-            )}
           </div>
 
           {/* Metadata */}
@@ -152,7 +138,7 @@ export function CurrentBookCard({ book, emojis, thumbsUpEmoji, thumbsDownEmoji, 
             )}
 
             {book.theme && (
-              <div className="hidden sm:block mb-1.5">
+              <div className="mb-1.5">
                 <span
                   className="inline-flex items-center gap-1 text-[11px] font-semibold"
                   style={{
@@ -166,7 +152,7 @@ export function CurrentBookCard({ book, emojis, thumbsUpEmoji, thumbsDownEmoji, 
               </div>
             )}
             {book.submitter_name && (
-              <p className="hidden sm:block text-xs text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>
+              <p className="text-xs text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>
                 Suggested by {book.submitter_name}
               </p>
             )}

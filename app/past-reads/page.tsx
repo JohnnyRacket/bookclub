@@ -111,6 +111,7 @@ export default async function PastReadsPage() {
                         book={book}
                         thumbsUpEmoji={clubConfig.thumbsUpEmoji}
                         thumbsDownEmoji={clubConfig.thumbsDownEmoji}
+                        ratingMode={clubConfig.ratingMode}
                       />
                     </div>
                   ))}

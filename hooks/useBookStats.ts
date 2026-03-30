@@ -8,6 +8,9 @@ export type BookStatsSnapshot = {
   up_count: number;
   down_count: number;
   user_thumb: 1 | -1 | null;
+  star_avg: number | null;
+  star_count: number;
+  user_star: number | null;
 };
 
 export function useBookStats(bookId: number, initial: BookStatsSnapshot): BookStatsSnapshot {

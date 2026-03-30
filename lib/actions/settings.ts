@@ -27,6 +27,7 @@ export type ClubConfig = {
   purgeAfterSelection: boolean;
   pinlessAdmin: boolean;
   bookFavicon: boolean;
+  ratingMode: 'thumbs' | 'stars';
 };
 
 const CONFIG_KEYS = [
@@ -44,6 +45,7 @@ const CONFIG_KEYS = [
   'purge_after_selection',
   'pinless_admin',
   'book_favicon',
+  'rating_mode',
 ] as const;
 
 export async function getMeetingSettings(): Promise<MeetingSettings> {
@@ -97,6 +99,7 @@ export async function getClubConfig(): Promise<ClubConfig> {
     purgeAfterSelection: map.get('purge_after_selection') !== '0',
     pinlessAdmin: map.get('pinless_admin') === '1',
     bookFavicon: map.get('book_favicon') === '1',
+    ratingMode: (map.get('rating_mode') ?? 'thumbs') as 'thumbs' | 'stars',
   };
 }
 
@@ -118,6 +121,7 @@ export async function updateClubConfig(
     ['purge_after_selection', formData.get('purge_after_selection') === '1' ? '1' : '0'],
     ['pinless_admin', formData.get('pinless_admin') === '1' ? '1' : '0'],
     ['book_favicon', formData.get('book_favicon') === '1' ? '1' : '0'],
+    ['rating_mode', (formData.get('rating_mode') as string)?.trim() || null],
   ];
 
   for (const [key, value] of fields) {

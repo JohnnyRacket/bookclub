@@ -89,6 +89,7 @@ export default async function HomePage() {
               thumbsUpEmoji={clubConfig.thumbsUpEmoji}
               thumbsDownEmoji={clubConfig.thumbsDownEmoji}
               customReactions={customReactions}
+              ratingMode={clubConfig.ratingMode}
             />
           </div>
 
@@ -130,6 +131,7 @@ export default async function HomePage() {
                   book={book}
                   thumbsUpEmoji={clubConfig.thumbsUpEmoji}
                   thumbsDownEmoji={clubConfig.thumbsDownEmoji}
+                  ratingMode={clubConfig.ratingMode}
                 />
               ))
             ) : (
